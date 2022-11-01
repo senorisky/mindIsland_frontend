@@ -15,7 +15,7 @@
     <el-button
         @click="Viewdetail"
         size="small"
-        v-for="tag in dynamicTags"
+        v-for="tag in NoteStore.getters.getCurrenNote.children"
         :key="tag"
         class="button-new-tag ml-1"
         :disable-transitions="false"
@@ -24,16 +24,8 @@
     >
       {{ tag.name }}
     </el-button>
-    <el-input
-        v-if="inputVisible"
-        ref="InputRef"
-        v-model="inputValue"
-        class="ml-1 w-20"
-        size="small"
-        @keyup.enter="handleInputConfirm"
-        @blur="handleInputConfirm"
-    />
-    <el-button v-else class="button-new-tag ml-1" size="small" @click="showInput">
+
+    <el-button class="button-new-tag ml-1" size="small" @click="drawer=true">
       + New Tag
     </el-button>
   </div>
@@ -43,93 +35,80 @@
     content
     <RouterView></RouterView>
   </div>
-
+  <div>
+    <el-drawer
+        v-model="drawer"
+        title="I am the title"
+        :direction="direction"
+        :before-close="handleClose"
+    >
+      <span>Hi, there!</span>
+    </el-drawer>
+  </div>
 </template>
 
 <script setup name="noteViews">
-import {nextTick, onMounted, onUnmounted, reactive, ref, toRaw, watch} from 'vue'
-import {ElInput} from 'element-plus'
+import { onMounted, onUnmounted, ref} from 'vue'
 import Mitt from "@/EventBus/mitt";
 import NoteStore from "@/store";
 import router from "@/router";
-import {useRoute} from "vue-router"
-import axios from "axios";
+// import CardView from "@/components/CardView";
+// import {ElMessageBox} from "element-plus";
+// import {useRoute} from "vue-router"
 
-const note = NoteStore.getters.getCurrenNote
-// console.log("noteview", note)
-console.log("noteview", note.children)
-const route = useRoute();
-const inputValue = ref('')
-const dynamicTags = reactive(note.children)
-const inputVisible = ref(false)
-const InputRef = ref()
-const handleClose = (tag) => {
-  dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1)
+const drawer = ref(false)
+// const drawer2 = ref(false)
+const direction = ref('rtl')
+// const radio1 = ref('Option 1')
+const handleClose = (done) => {
+  done()
+
 }
-const objToStrMap = function (obj) {
-  let strMap = new Map();
-  for (let k of Object.keys(obj)) {
-    strMap.set(k, obj[k]);
-  }
-  return strMap;
-}
-/**
- *json转换为map
- */
-const jsonToMap = function (jsonStr) {
-  return objToStrMap(JSON.parse(jsonStr));
-}
+
+
+// const route = useRoute();
+// const dynamicTags = reactive([])
+// let CardActivate = ref(false)
+// const handleClose = (tag) => {
+//   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1)
+// }
 const Viewdetail = () => {
 //  替换 routerview 显示数据
 }
-const showInput = () => {
-  inputVisible.value = true
-  nextTick(() => {
-    InputRef.value.input.focus()
-  })
-}
 
-const handleInputConfirm = () => {
-  if (inputValue.value) {
-    dynamicTags.value.push(inputValue.value)
-  }
-  inputVisible.value = false
-  inputValue.value = ''
-}
-
-watch(note, (newValue) => {
-  console.log("noteview note change", newValue)
-})
-let views = reactive([]);
+// let views = reactive([]);
 onMounted(() => {
 //点击note的view
   console.log("noteview mounted")
-
-
   Mitt.on("ViewRouter", (item) => {
-    //数据
-    const ViewName = item.name + item.id
-    console.log(item.type, ViewName)
-    console.log("点击NoteView了", ViewName)
-      const children = NoteStore.getters.getchildren;
-      router.push({
-        name: ViewName,
-        params: {
-          data: ""
-        }
-      });
-    }
+        //数据
+        const ViewName = item.name + item.id
+        console.log(item.type, ViewName)
+        console.log("点击NoteView了", ViewName)
+        // const children = NoteStore.getters.getchildren;
+        router.push({
+          name: ViewName,
+          params: {
+            data: ""
+          }
+        });
+      }
   )
-  })
-  onUnmounted(() => {
-    Mitt.off("ViewRouter")
-  })
+})
+onUnmounted(() => {
+  Mitt.off("ViewRouter")
+})
 </script>
 
 <style scoped>
 .el-button {
   margin-right: 5px !important;
   margin-left: 0 !important;
+}
+
+.drawer_contrainer {
+  position: relative;
+  overflow: hidden;
 }
 
 .button-new-tag {
@@ -152,6 +131,7 @@ onMounted(() => {
   width: 100%;
   border-top: 1px solid #DCDCDC;
 }
+
 
 .head_container {
   width: 100%;

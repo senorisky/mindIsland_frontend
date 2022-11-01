@@ -197,7 +197,7 @@ const login = () => {
         method: 'post',
         url: '/login',
         data: qs.stringify(user),
-      }).then((res) => {
+      }).then(() => {
         // console.log(result);
         //返回菜单信息和用户信息
 

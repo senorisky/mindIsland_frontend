@@ -19,9 +19,9 @@ import NoteViews from "@/components/NoteViews";
 import {onBeforeMount, onMounted, onUnmounted, reactive, ref, toRaw} from "vue";
 import Mitt from "@/EventBus/mitt";
 import router from "@/router";
-import UserStore from "../store/index"
+// import UserStore from "../store/index"
 import NoteStore from "../store/index"
-import axios from "axios";
+// import axios from "axios";
 
 
 const menuData = reactive(NoteStore.getters.getMenuData);
@@ -66,7 +66,9 @@ onUnmounted(() => {
 
 /* 主区域 */
 .note_content {
-  position: absolute;
+  overflow: hidden;
+  position: relative;
+
   top: 0px;
   left: 191px;
   bottom: 0px;

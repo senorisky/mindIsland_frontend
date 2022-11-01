@@ -31,9 +31,9 @@
 
 import {reactive} from "vue";
 
-const deleteRow = (index) => {
-
-}
+// const deleteRow = (index) => {
+//
+// }
 const ItemStyle = reactive({
   "display": "block",
   "color": "inherit",
