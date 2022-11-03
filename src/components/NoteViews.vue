@@ -13,7 +13,7 @@
   <!--  每一个note中添加的功能项-->
   <div class="note-view-tags">
     <el-button
-        @click="Viewdetail"
+        @click="Viewdetail(tag)"
         size="small"
         v-for="tag in NoteStore.getters.getCurrenNote.children"
         :key="tag"
@@ -24,9 +24,8 @@
     >
       {{ tag.name }}
     </el-button>
-
     <el-button class="button-new-tag ml-1" size="small" @click="drawer=true">
-      + New Tag
+      + New View
     </el-button>
   </div>
   <span class="border"></span>
@@ -35,51 +34,114 @@
     content
     <RouterView></RouterView>
   </div>
-  <div>
+  <div class="drawer_contrainer">
+    <!--   添加view的抽屉 -->
     <el-drawer
         v-model="drawer"
-        title="I am the title"
+        title="Pick a view "
         :direction="direction"
         :before-close="handleClose"
     >
-      <span>Hi, there!</span>
+      <el-row :gutter="20">
+        <el-col :span="8">
+          <div class="grid-content ep-bg-purple addViews" @click="addGallry">
+            <el-icon class="iconfont el-icon-gallery "></el-icon>
+            <div style="margin-top: 5px">画廊</div>
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="grid-content ep-bg-purple addViews" @click="addList">
+            <el-icon class="iconfont el-icon-nav-list"></el-icon>
+            <div>列表</div>
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="grid-content ep-bg-purple addViews" @click="addTable">
+            <el-icon class="iconfont el-icon-table ">
+            </el-icon>
+            <div>表格</div>
+          </div>
+        </el-col>
+      </el-row>
     </el-drawer>
   </div>
 </template>
 
 <script setup name="noteViews">
-import { onMounted, onUnmounted, ref} from 'vue'
+import {onMounted, onUnmounted, ref} from 'vue'
 import Mitt from "@/EventBus/mitt";
 import NoteStore from "@/store";
 import router from "@/router";
-// import CardView from "@/components/CardView";
-// import {ElMessageBox} from "element-plus";
-// import {useRoute} from "vue-router"
 
 const drawer = ref(false)
-// const drawer2 = ref(false)
 const direction = ref('rtl')
-// const radio1 = ref('Option 1')
+
 const handleClose = (done) => {
   done()
-
 }
-
-
-// const route = useRoute();
-// const dynamicTags = reactive([])
-// let CardActivate = ref(false)
-// const handleClose = (tag) => {
-//   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1)
-// }
-const Viewdetail = () => {
+const addTable = function () {
+  const parent_name = NoteStore.getters.getCurrenNote.name;
+  const view_name = "Table"
+  const view_id = Date.now().toString();
+  const table = {
+    name: view_name,
+    fname: parent_name,
+    id: view_id,
+    icon: "iconfont el-icon-dian",
+    type: "view",
+    path: parent_name + "/" + view_name + view_id,
+    component: "TableView",
+    isOpen: false
+  }
+  NoteStore.dispatch("addChild", table)
+}
+const addList = function () {
+  const parent_name = NoteStore.getters.getCurrenNote.name;
+  const view_name = "List"
+  const view_id = Date.now().toString();
+  const List = {
+    name: view_name,
+    fname: parent_name,
+    id: view_id,
+    icon: "iconfont el-icon-dian",
+    type: "view",
+    path: parent_name + "/" + view_name + view_id,
+    component: "ListView",
+    isOpen: false
+  }
+  NoteStore.dispatch("addChild", List)
+}
+const addGallry = function () {
+  const parent_name = NoteStore.getters.getCurrenNote.name;
+  const view_name = "Gallery"
+  const view_id = Date.now().toString();
+  const Gallery = {
+    name: view_name,
+    fname: parent_name,
+    id: view_id,
+    icon: "iconfont el-icon-dian",
+    type: "view",
+    path: parent_name + "/" + view_name + view_id,
+    component: "GalleryView",
+    isOpen: false
+  }
+  NoteStore.dispatch("addChild", Gallery)
+}
+const Viewdetail = function (tag) {
 //  替换 routerview 显示数据
+  const routeName = tag.name + tag.id
+  console.log("点击NoteView了", routeName)
+  router.push({
+    name: routeName,
+    params: {
+      data: ""
+    }
+  });
 }
-
 // let views = reactive([]);
 onMounted(() => {
 //点击note的view
-  console.log("noteview mounted")
+  console.log(NoteStore.getters.getCurrenNote.children)
   Mitt.on("ViewRouter", (item) => {
         //数据
         const ViewName = item.name + item.id
@@ -100,15 +162,28 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .el-button {
   margin-right: 5px !important;
   margin-left: 0 !important;
 }
 
-.drawer_contrainer {
-  position: relative;
-  overflow: hidden;
+/deep/ .el-drawer.rtl {
+  height: auto;
+  margin-top: 270px;
+  margin-bottom: 20px;
+}
+
+/deep/ .el-overlay {
+  background-color: transparent !important;
+  margin-right: 20px;
+}
+
+/deep/ .el-drawer {
+  background-color: #f1f5f7;
+  border-radius: 15px;
+  box-shadow: var(--el-alert-bg-color);
+  width: 25% !important;
 }
 
 .button-new-tag {
@@ -120,9 +195,6 @@ onUnmounted(() => {
   display: flex;
 }
 
-.view-page {
-
-}
 
 .border {
   margin-left: 3px;
@@ -132,6 +204,23 @@ onUnmounted(() => {
   border-top: 1px solid #DCDCDC;
 }
 
+.addViews {
+  border: 5px #4B70E2;
+  display: inline-block;
+  vertical-align: middle;
+  -webkit-transform: perspective(1px) translateZ(0);
+  transform: perspective(1px) translateZ(0);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+  -webkit-transition-duration: 0.3s;
+  transition-duration: 0.3s;
+  -webkit-transition-property: transform;
+  transition-property: transform;
+}
+
+.addViews:hover, .addViews:focus, .addViews:active {
+  -webkit-transform: scale(0.8);
+  transform: scale(0.8);
+}
 
 .head_container {
   width: 100%;

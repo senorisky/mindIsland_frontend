@@ -3,9 +3,8 @@
   <el-button type="primary" size="default" @click="addColumn">添加列</el-button>
   <el-button type="primary" size="default" @click="submit">提交</el-button>
   <el-table :data="tableData" border style="width: 100%" ref="myTable">
-    <el-table-column prop="date" label="日期" width="180"></el-table-column>
-    <el-table-column prop="name" label="姓名" width="180"></el-table-column>
-    <el-table-column prop="address" label="地址"></el-table-column>
+    <el-table-column prop="date" label="name" width="180"></el-table-column>
+    <el-table-column prop="name" label="time" width="180"></el-table-column>
     <!-- 动态列 -->
     <el-table-column
         v-for="(item, index) in dynamicColumns"

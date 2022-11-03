@@ -1,37 +1,166 @@
 <template>
-  <!-- el-sub-menu和el-menu-item 可能会有多层嵌套，所以抽取出来封装成递归组件-->
-  <div class="menuBar">
-    <el-menu unique-opened="true">
-      <MainMenu :menuData="menuData"></MainMenu>
-    </el-menu>
-  </div>
+  <el-scrollbar class="menuBar">
+    <!--侧边主菜单-->
+    <div>
+      <div style="margin-bottom: 6px">
+        <el-input v-model="searchInput" class="w-50 m-2" placeholder="search">
+          <template #prefix>
+            <el-icon class="el-input__icon">
+              <search/>
+            </el-icon>
+          </template>
+        </el-input>
+      </div>
+      <!-- el-sub-menu和el-menu-item 可能会有多层嵌套，所以抽取出来封装成递归组件-->
+      <el-menu unique-opened>
+        <el-menu-item>
+          <template #title>
+            <el-icon>
+              <setting></setting>
+            </el-icon>
+            <span>Personal Home</span>
+          </template>
+        </el-menu-item>
+        <div style="height: 7px;width: 180px;background: #f5f5f5"></div>
+        <MainMenu :menuData="NoteStore.getters.getMenuData"></MainMenu>
+      </el-menu>
+      <el-button round class="addPN" @click="showNPDrawer">Note & Page
+      </el-button>
+    </div>
+  </el-scrollbar>
   <div class="note_content">
+    <!--  Note的内容页  -->
     <RouterView></RouterView>
+  </div>
+  <div class="drawer_contrainer">
+    <!--  添加note 或者page的抽屉 内有表单  -->
+    <el-drawer
+        v-model="drawer1"
+        title="Give  basic  info"
+        :direction="direction"
+        :before-close="handleClose"
+    >
+      <el-form ref="formRef" :model="form" label-width="20px">
+        <el-form-item prop="name" class="deepInput">
+          <el-input v-model="form.name" placeholder="Name is required"/>
+        </el-form-item>
+        <el-form-item prop="date">
+          <el-col :span="11">
+            <el-date-picker
+                v-model="form.date"
+                type="date"
+                readonly
+                placeholder="Pick current date !!"
+                style="width: 100%"
+            />
+          </el-col>
+          <el-col :span="2" class="text-center">
+            <span class="text-gray-500">-</span>
+          </el-col>
+          <el-col :span="11">
+            <el-time-picker
+                v-model="form.date"
+                readonly
+                type="time"
+                placeholder="Pick current time !!"
+                style="width: 100%"
+            />
+          </el-col>
+        </el-form-item>
+        <el-form-item prop="type">
+          <el-radio-group v-model="form.type">
+            <el-radio label="note"/>
+            <el-radio label="page"/>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item class="inputDeep">
+          <el-input v-model="form.desc" type="textarea" placeholder="please give a simple description or not"/>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="addNote">Create</el-button>
+          <el-button @click="drawer1=false">Cancel</el-button>
+        </el-form-item>
+      </el-form>
+    </el-drawer>
   </div>
 </template>
 
 <script setup name="MainView">
 import MainMenu from "@/components/MainMenu";
-// import HeaderView from "@/components/HeaderView";
+import {Setting} from '@element-plus/icons-vue'
+
 // eslint-disable-next-line no-unused-vars
-import NoteViews from "@/components/NoteViews";
-// eslint-disable-next-line no-unused-vars
-import {onBeforeMount, onMounted, onUnmounted, reactive, ref, toRaw} from "vue";
+import {computed, onBeforeMount, onMounted, onUnmounted, reactive, ref, toRaw} from "vue";
 import Mitt from "@/EventBus/mitt";
 import router from "@/router";
-// import UserStore from "../store/index"
 import NoteStore from "../store/index"
-// import axios from "axios";
+import UserStore from "../store/index"
 
-
-const menuData = reactive(NoteStore.getters.getMenuData);
-console.log("菜单数据", menuData)
+const formRef = ref(null)
+const form = reactive({
+  name: undefined,
+  date: ref(""),
+  desc: "",
+  type: "note"
+})
+const searchInput = ref('')
+let drawer1 = ref(false)
+const direction = ref('rtl')
+const handleClose = (done) => {
+  //抽屉关闭
+  done()
+  formRef.value.resetFields();
+}
+//添加note或者page
+const showNPDrawer = function () {
+  drawer1.value = true;
+  form.date = Date.now();
+}
+const addNote = function () {
+  if (form.name !== undefined && form.type !== undefined) {
+    const np = NoteStore.getters.getMenuData;
+    for (let i in np) {
+      if (np[i].name === form.name) {
+        console.log("note或者page名字重复")
+      }
+    }
+    if (form.type === "note") {
+      const note = {
+        id: UserStore.getters.getUser.name + form.name,
+        name: form.name,
+        type: "note",
+        fname: "",
+        path: "",
+        icon: "iconfont el-icon-note",
+        isOpen: false,
+        children: []
+      }
+      NoteStore.dispatch("addNote", note)
+    } else {
+      const page = {
+        id: UserStore.getters.getUser.name + form.name,
+        name: form.name,
+        type: "page",
+        fname: "",
+        path: "",
+        icon: "iconfont el-icon-13",
+        isOpen: false,
+        children: []
+      }
+      NoteStore.dispatch("addPage", page)
+    }
+  }
+  formRef.value.resetFields();
+  drawer1.value = false;
+}
 onMounted(() => {
-  //只点击note
+  //只点击带孩子的note进行的路由跳转
   Mitt.on("MenuRouter", (noteName) => {
+    // console.log("store", NoteStore.getters.getCurrenNote)
     const lastNodeName = NoteStore.getters.getCurrenNote.name;
-    console.log(lastNodeName, noteName)
+    console.log("lastNode", lastNodeName)
     if (noteName !== lastNodeName) {
+      localStorage.setItem("currentNote", noteName)
       NoteStore.commit("saveCurrentNote", noteName)
       console.log("当前note", NoteStore.getters.getCurrenNote)
       router.push({
@@ -42,39 +171,124 @@ onMounted(() => {
       });
     }
   })
+  Mitt.on("PageRouter", (pageName) => {
+    const lastNodeName = NoteStore.getters.getCurrenNote.name;
+    console.log("lastNode", lastNodeName)
+    if (pageName !== lastNodeName) {
+      localStorage.setItem("currentNote", pageName)
+      NoteStore.commit("saveCurrentNote", pageName)
+      console.log("当前note", NoteStore.getters.getCurrenNote)
+      router.push({
+        name: pageName,
+        params: {
+          note: pageName
+        }
+      });
+    }
+  })
 })
 onUnmounted(() => {
   Mitt.off("MenuRouter")
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+.drawer_contrainer {
+  position: relative;
 
+}
+
+:deep(::-webkit-scrollbar) {
+  display: none;
+}
+
+/deep/ .el-menu-item {
+  height: 43px !important;
+  line-height: 43px !important;
+}
+
+.addPN {
+  line-height: 13px !important;
+  height: 43px !important;
+  min-width: 180px !important;
+  padding: 0px !important;
+  width: 180px !important;
+  background-color: #F0F8FF !important;
+}
+
+.setting {
+  line-height: 13px !important;
+  height: 43px !important;
+  min-width: 180px !important;
+  padding: 0px !important;
+  width: 180px !important;
+  background-color: #ffffff !important;
+}
+
+.deepInput {
+  :deep(.el-input__wrapper) {
+    box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
+    cursor: default;
+
+    .el-input__inner {
+      cursor: default !important;
+    }
+  }
+}
+
+.inputDeep {
+  :deep(.el-textarea__inner) {
+    box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
+    resize: none;
+    cursor: default;
+  }
+}
+
+/deep/ .el-drawer.rtl {
+  height: auto;
+  margin-top: 270px;
+  margin-bottom: 20px;
+
+}
+
+/deep/ .el-overlay {
+  background-color: transparent !important;
+  margin-right: 20px;
+}
+
+/deep/ .el-drawer {
+  background-color: #f1f5f7;
+  border-radius: 15px;
+  box-shadow: var(--el-alert-bg-color);
+  width: 30% !important;
+}
 
 /* 左侧样式 */
 .menuBar {
   position: absolute;
   padding-left: 7px;
-  padding-right: 4px;
+  padding-right: 10px;
   width: 180px;
   top: 0px; /* 距离上面50像素 */
   left: 0px;
   bottom: 0px;
-  overflow-y: false; /* 当内容过多时y轴出现滚动条 */
+  overflow-y: auto; /* 当内容过多时y轴出现滚动条 */
+  overflow-x: hidden;
   background-color: #f5f5f5;
 }
 
 /* 主区域 */
 .note_content {
-  overflow: hidden;
-  position: relative;
 
+  position: absolute;
+  margin-right: 150px;
   top: 0px;
-  left: 191px;
+  left: 197px;
   bottom: 0px;
   right: 0px; /* 距离右边0像素 */
   margin-left: 100px;
-  overflow-y: auto; /* 当内容过多时y轴出现滚动条 */
+  overflow-x: hidden; /* 当内容过多时y轴出现滚动条 */
+  overflow-y: auto;
   /* background-color: red; */
 }
 </style>

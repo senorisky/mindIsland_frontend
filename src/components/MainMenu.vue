@@ -5,7 +5,8 @@
       <div v-if="item.children&&item.children.length" :index="item.id" @click="showNote(item)">
         <el-sub-menu class="noteItem" :index="item.id">
           <template #title>
-            <span :class="icon.name"></span>
+            <el-icon :class="item.icon">
+            </el-icon>
             <span class="low_span">{{ item.name }}</span>
           </template>
           <div @click.stop>
@@ -16,27 +17,28 @@
       <!-- 没有子节点，使用 el-menu-item 渲染 -->
       <el-menu-item class="noteItem" v-else :index="item.id" v-on:click=showNoteView(item)>
         <template #title>
+          <el-icon :class="item.icon">
+          </el-icon>
+
           <span>{{ item.name }}</span>
         </template>
       </el-menu-item>
       <div v-if="catchDeep(item.type)" style="height: 7px;width: 180px;background: #f5f5f5"></div>
     </template>
   </div>
+
+
 </template>
 
-<script setup name=" MainMenu">
-// eslint-disable-next-line no-undef
+<script setup name="MainMenu">
 
-import {reactive} from "vue";
+// eslint-disable-next-line no-unused-vars
+import {onMounted, reactive} from "vue";
 import Mitt from "@/EventBus/mitt";
-
+import router from "@/router";
 // eslint-disable-next-line no-unused-vars
 const showNote = function (item) {
   console.log("点击Note, children")
-  // console.log(item.isOpen)
-  //父结点
-
-  // console.log(item.isOpen)
   if (item.type === "note") {
     const noteName = item.name
     // console.log(item.type)
@@ -50,31 +52,34 @@ const showNoteView = function (item) {
   if (item.type === "note") {
     console.log("点击Note,no children")
     const noteName = item.name
-    console.log(item.type)
+    console.log(router.getRoutes())
     Mitt.emit("MenuRouter", noteName)
-  } else {
+  } else if (item.type === "view") {
     console.log("点击NoteView")
+    console.log(router.getRoutes())
     Mitt.emit("ViewRouter", item)
+  } else if (item.type === "page") {
+    console.log("点击Page")
+    Mitt.emit("PageRouter", item.name)
+  } else {
+    console.log("error!!")
   }
 
 }
 const catchDeep = function (type) {
-  if (type == "note") {
+  if (type === "note"||type==="page") {
     return true;
   }
   return false;
 }
-const icon = reactive({
-  name: ""
-})
 // eslint-disable-next-line no-undef
 const props = defineProps({
   menuData: {
     type: Array
   }
 })
-
-
+onMounted(() => {
+})
 </script>
 
 <style lang="scss">
@@ -100,7 +105,6 @@ const props = defineProps({
   padding: 20px !important;
   width: 180px !important;
 }
-
 
 .word {
   font-size: 5px;

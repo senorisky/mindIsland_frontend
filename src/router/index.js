@@ -37,19 +37,12 @@ const router = createRouter({
 
 //全局路由守卫 前置  初始和每一次路由跳转的时候进行跳转  next放行
 router.beforeEach((to, from, next) => {
-    // iView.LoadingBar.start();
-    //console.log("store",store);
-    //储存当前路由，便于在重新打开时候跳到上次关闭的页面（用户主动退出除外）
-    // if (to.name) {
-    //     localStorage.setItem('nowRouter', JSON.stringify(to));
-    // } else if (from.name) {
-    //     localStorage.setItem('nowRouter', JSON.stringify(from));
-    // }
     console.log("跳转到", to.path)
     //处理刷新界面动态路由丢失问题
     const user = UserStore.getters.getUser;
     // console.log(user.name) //动态数组丢失说明用户刷新了页面
     //首页时候，直接跳转（不是动态页面）
+    console.log(user.name)
     if (to.path === "/") {
         next();
     }//登录进主页时候，直接跳转（不是动态页面）
@@ -69,7 +62,6 @@ router.beforeEach((to, from, next) => {
                 name: father.name + "Profile",
                 component: () => import(`../components/ProFile`)
             })
-            //
             if (father.children && father.children.length) {
                 for (let child of father.children) {
                     // console.log(child.id, father.name)
@@ -83,8 +75,7 @@ router.beforeEach((to, from, next) => {
         }
         console.log(router.getRoutes())
         next()
-    }
-    else if (user.name === null) {
+    } else if (user.name === null) {
         //从localStorage中获取菜单树。然后重新加载路由
         let menuData = [];
         menuData = JSON.parse(localStorage.getItem("menuData"));
@@ -116,20 +107,22 @@ router.beforeEach((to, from, next) => {
         console.log(router.getRoutes())
         console.log("重新加载动态路由")
         //重新vuex
-        let notes = localStorage.getItem("NotesMap")
+        console.log("to", to.name)
+        // let noteName = localStorage.getItem("currentNote")
+        if (to.name != undefined)
+            localStorage.setItem("currentNote", to.name)
         // console.log("取notes", notes)
         UserStore.commit("saveUser", JSON.parse(localStorage.getItem("user")))
-        NoteStore.commit("saveNotes", notes)
         // console.log("存vuex", NoteStore.getters.getNotes)
-        NoteStore.commit("savechildren", localStorage.getItem("childrenMap"))
         NoteStore.commit("saveMenuData", menuData)
-        console.log("路由动态加载了数据", menuData)
+        NoteStore.commit("saveCurrentNote", localStorage.getItem("currentNote"))
+        console.log("路由动态加载了数据")
         next({...to, replace: true})
     } else {
         console.log("正常路由")
-         next()
-
+        next()
     }
+    console.log(router.getRoutes())
 
 })
 export default router

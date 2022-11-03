@@ -54,7 +54,9 @@ let menuData = reactive(
         type: "note",
         fname: "",
         path: "",
-        isOpen: false
+        icon: "iconfont el-icon-dushu",
+        isOpen: false,
+        children: []
       },
       {
         id: "2",
@@ -62,6 +64,7 @@ let menuData = reactive(
         name: "RecipeNote",
         type: "note",
         path: "", isOpen: false,
+        icon: "iconfont el-icon-jitui",
         children: [
           {
             id: "10",
@@ -70,6 +73,7 @@ let menuData = reactive(
             type: "view",
             path: "Recipe/Gallery",
             component: "GalleryView",
+            icon: "iconfont el-icon-dian",
             isOpen: false
           }
         ]
@@ -81,6 +85,7 @@ let menuData = reactive(
         type: "note",
         path: "",
         isOpen: false,
+        icon: "iconfont el-icon-gongzuotai",
         children: [
           {
             id: "7",
@@ -88,6 +93,7 @@ let menuData = reactive(
             name: "List",
             type: "view",
             path: "Task/List",
+            icon: "iconfont el-icon-dian",
             component: "ListView",
             isOpen: false
           },
@@ -97,6 +103,7 @@ let menuData = reactive(
             name: "Table",
             type: "view",
             path: "Task/Table",
+            icon: "iconfont el-icon-dian",
             component: "TableView",
             isOpen: false
           }
@@ -108,6 +115,7 @@ let menuData = reactive(
         name: "DiaryNote",
         type: "note",
         path: "",
+        icon: "iconfont el-icon-miao",
         isOpen: false,
         children: [
           {
@@ -116,6 +124,7 @@ let menuData = reactive(
             name: "List",
             type: "view",
             path: "Diary/List",
+            icon: "iconfont el-icon-dian",
             component: "ListView",
             isOpen: false
           }
@@ -128,7 +137,9 @@ let menuData = reactive(
         name: "GalleryNote",
         type: "note",
         path: "",
-        isOpen: false
+        icon: "iconfont el-icon-tuku",
+        isOpen: false,
+        children: []
       }
       ,
       {
@@ -137,56 +148,37 @@ let menuData = reactive(
         name: "VideoNote",
         type: "note",
         path: "",
-        isOpen: false
+        icon: "iconfont el-icon-shipin",
+        isOpen: false, children: []
+      },
+      {
+        id: "7",
+        fname: "",
+        name: "TravelNote",
+        type: "note",
+        path: "",
+        icon: "iconfont el-icon-feiji",
+        isOpen: false,
+        children: []
       }
     ]
 )
-const strMapToObj = function (strMap) {
-  let obj = Object.create(null);
-  for (let [k, v] of strMap) {
-    obj[k] = v;
-  }
-  return obj;
-}
-/**
- *map转换为json
- */
-const mapToJson = function (map) {
-  return JSON.stringify(strMapToObj(map));
-}
+// const strMapToObj = function (strMap) {
+//   let obj = Object.create(null);
+//   for (let [k, v] of strMap) {
+//     obj[k] = v;
+//   }
+//   return obj;
+// }
+// /**
+//  *map转换为json
+//  */
+// const mapToJson = function (map) {
+//   return JSON.stringify(strMapToObj(map));
+// }
 const DynamicMenuRouter = function (menuData) {
-  const NoteNames = reactive([]);//数组
-  const viewNames = reactive([]);//数组
-  const notes = new Map()
-  const children = new Map()
-  // console.log(router.getRoutes())
-  for (let father of menuData) {
-    notes.set(father.name, father)
-    NoteNames.push(father.name)
-    //
-    if (father.children && father.children.length) {
-      children.set((father.name), children)
-      for (let child of father.children) {
-        // console.log(child.id, father.name)
-        viewNames.push(child.name)
-        router.addRoute(father.name, {
-          path: "/space/" + father.name + "/" + child.name + child.id,
-          name: child.name + child.id,
-          component: import(`../components/${child.component}`)
-        })
-      }
-    }
-  }
   //动态路由存在本地-----退出登录时候清空
-  console.log("存储local", notes)
-  const notesJson = mapToJson(notes)
-  const childrenJson = mapToJson(children)
-  localStorage.setItem("NotesMap", notesJson)
-  // console.log("q取local", localStorage.getItem("NotesMap"))
   localStorage.setItem('menuData', JSON.stringify(menuData))
-  localStorage.setItem("childrenMap", childrenJson)
-  NoteStore.commit("saveNotes", notesJson)
-  NoteStore.commit("savechildren", childrenJson)
   NoteStore.commit("saveMenuData", menuData)
 }
 const loginForm = ref()
