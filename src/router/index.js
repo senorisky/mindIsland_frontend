@@ -52,16 +52,24 @@ router.beforeEach((to, from, next) => {
         console.log("登录", menuData)
         for (let father of menuData) {
             // console.log(father.name)
-            router.addRoute("space", {
-                path: "/space/" + father.name,
-                name: father.name,
-                component: () => import(`../components/NoteViews`)
-            })
-            router.addRoute(father.name, {
-                path: "/space/" + father.name + "/Profile",
-                name: father.name + "Profile",
-                component: () => import(`../components/ProFile`)
-            })
+            if (father.type === "note") {
+                router.addRoute("space", {
+                    path: "/space/" + father.name,
+                    name: father.name,
+                    component: () => import(`../components/NoteViews`)
+                })
+                router.addRoute(father.name, {
+                    path: "/space/" + father.name + "/Profile",
+                    name: father.name + "Profile",
+                    component: () => import(`../components/ProFile`)
+                })
+            } else if (father.type === "page") {
+                router.addRoute("space", {
+                    path: "/space/" + father.name,
+                    name: father.name,
+                    component: () => import(`../components/ViewPage`)
+                })
+            }
             if (father.children && father.children.length) {
                 for (let child of father.children) {
                     // console.log(child.id, father.name)
@@ -82,16 +90,24 @@ router.beforeEach((to, from, next) => {
         console.log(menuData)
         for (let father of menuData) {
             // console.log(father.name)
-            router.addRoute("space", {
-                path: "/space/" + father.name,
-                name: father.name,
-                component: () => import(`../components/NoteViews`)
-            })
-            router.addRoute(father.name, {
-                path: "/space/" + father.name + "/Profile",
-                name: father.name + "Profile",
-                component: () => import(`../components/ProFile`)
-            })
+            if (father.type === "note") {
+                router.addRoute("space", {
+                    path: "/space/" + father.name,
+                    name: father.name,
+                    component: () => import(`../components/NoteViews`)
+                })
+                router.addRoute(father.name, {
+                    path: "/space/" + father.name + "/Profile",
+                    name: father.name + "Profile",
+                    component: () => import(`../components/ProFile`)
+                })
+            } else if (father.type === "page") {
+                router.addRoute("space", {
+                    path: "/space/" + father.name,
+                    name: father.name,
+                    component: () => import(`../components/ViewPage`)
+                })
+            }
             //
             if (father.children && father.children.length) {
                 for (let child of father.children) {

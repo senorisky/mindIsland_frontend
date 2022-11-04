@@ -65,8 +65,10 @@ const NoteStore = {
         },
         saveNote(state, note) {
             state.menuData.push(note)
+            localStorage.setItem("menuData", JSON.stringify(state.menuData))
         }, savePage(state, page) {
             state.menuData.push(page)
+            localStorage.setItem("menuData", JSON.stringify(state.menuData))
         }
     },
     actions: {
@@ -111,9 +113,17 @@ const NoteStore = {
         }
     },
 }
+
+const PageStore = {
+    state: {},
+    getters: {},
+    mutations: {},
+    actions: {},
+}
 export default createStore({
     modules: {
         UserStore,
-        NoteStore
+        NoteStore,
+        PageStore
     }
 })

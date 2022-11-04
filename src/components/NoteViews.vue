@@ -168,18 +168,18 @@ onUnmounted(() => {
   margin-left: 0 !important;
 }
 
-/deep/ .el-drawer.rtl {
+:deep(.el-drawer.rtl)  {
   height: auto;
   margin-top: 270px;
   margin-bottom: 20px;
 }
 
-/deep/ .el-overlay {
+:deep(.el-overlay)  {
   background-color: transparent !important;
   margin-right: 20px;
 }
 
-/deep/ .el-drawer {
+:deep( .el-drawer ) {
   background-color: #f1f5f7;
   border-radius: 15px;
   box-shadow: var(--el-alert-bg-color);

@@ -2,10 +2,8 @@
   <div></div>
 </template>
 
-<script>
-export default {
-  name: "PageView"
-}
+<script setup name="PageView">
+
 </script>
 
 <style scoped>
