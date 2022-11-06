@@ -67,7 +67,7 @@
   </div>
 </template>
 
-<script setup name="noteViews">
+<script setup name="NoteView">
 import {onMounted, onUnmounted, ref} from 'vue'
 import Mitt from "@/EventBus/mitt";
 import NoteStore from "@/store";
@@ -168,13 +168,13 @@ onUnmounted(() => {
   margin-left: 0 !important;
 }
 
-:deep(.el-drawer.rtl)  {
+:deep(.el-drawer.rtl) {
   height: auto;
   margin-top: 270px;
   margin-bottom: 20px;
 }
 
-:deep(.el-overlay)  {
+:deep(.el-overlay) {
   background-color: transparent !important;
   margin-right: 20px;
 }

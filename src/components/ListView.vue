@@ -1,39 +1,34 @@
 <template>
-  <div class="todoList_container">
-    <div style="width: 33%" class="list">
-      <el-table :data="todoData" max-height="300px" :cell-style="ItemStyle">
-        <el-table-column class="list_tittle" prop="Todo" label="Todo"/>
-      </el-table>
-      <el-button class="mt-4" style="width: 100%" @click="onAddItem"
-      >Add Item
-      </el-button>
+  <el-scrollbar>
+    <div class="todoList_container">
+      <div style="width: 23%" class="list" v-for="(item,index) in listData" :key="index">
+        <el-table :data="item.items" max-height="300px" :cell-style="ItemStyle">
+          <el-table-column class="list_tittle" prop="Todo" :label="item.colum"/>
+        </el-table>
+        <el-button class="mt-4" style="width: 100%" @click="onAddItem"
+        >Add Item
+        </el-button>
+      </div>
     </div>
-    <div style="width: 33%" class="list">
-      <el-table :data="doingData" max-height="300px" :cell-style="ItemStyle">
-        <el-table-column class="list_tittle" prop="Doing" label="Doing"/>
-      </el-table>
-      <el-button class="mt-4" style="width: 100%" @click="onAddItem"
-      >Add Item
-      </el-button>
-    </div>
-    <div style="width: 33%" class="list">
-      <el-table :data="doneData" max-height="300px" :cell-style="ItemStyle">
-        <el-table-column class="list_tittle" prop="Done" label="Done"/>
-      </el-table>
-      <el-button class="mt-4" style="width: 100%" @click="onAddItem"
-      >Add Item
-      </el-button>
-    </div>
-  </div>
+  </el-scrollbar>
 </template>
 
 <script setup name="ListView">
 
 import {reactive} from "vue";
 
-// const deleteRow = (index) => {
-//
-// }
+const listData = reactive([
+  {
+    colum: "Todo",
+    items: []
+  }, {
+    colum: "Doing",
+    items: []
+  }, {
+    colum: "Done",
+    items: []
+  }
+])
 const ItemStyle = reactive({
   "display": "block",
   "color": "inherit",

@@ -9,66 +9,89 @@
       <el-divider/>
     </div>
     <!-- page的内容 图文混合排版 -->
-    <el-scrollbar class="PageContent">
-      <component v-for="(item,index) in componentArr" :is="item.name" :key="index" style="margin-top: 7px"></component>
+    <div class="PageContent">
+      <component v-for="(item,index) in (PageStore.getters.getComponentsArr)" :is="item.name" :key="index"
+                 :id=index style="margin-top: 7px"></component>
       <div style="display: flex; align-items: center">
-        <el-popover ref="popover" placement="right" :width="200" trigger="focus">
+        <el-popover ref="popover" placement="right" :width="60" trigger="click">
           <template #reference>
-            <el-button>Focus to activate</el-button>
+            <el-button style="margin-top: 12px">添加内容</el-button>
           </template>
           <el-button-group>
-            <el-button>一级标题</el-button>
-            <el-button>二级标题</el-button>
-            <el-button>三级标题</el-button>
-            <el-button>正文文本</el-button>
-            <el-button>图片·</el-button>
+            <el-button @click="addH1">一级标题</el-button>
+            <el-button @click="addH2" style="margin-top: 5px">二级标题</el-button>
+            <el-button @click="addH3" style="margin-top: 5px">三级标题</el-button>
+            <el-button @click="addTextArea" style="margin-top: 5px">正文文本</el-button>
+            <el-button style="margin-top: 5px">图片</el-button>
           </el-button-group>
         </el-popover>
       </div>
-    </el-scrollbar>
+    </div>
   </div>
 </template>
 
 <script name="ViewPage">
-import {reactive, ref} from "vue";
+import {ref} from "vue";
 import HeadTwo from "@/components/HeadTwo";
 import HeadOne from "@/components/HeadOne";
-import HeadThree from "@/components/HeadThree"
+import HeadThree from "@/components/HeadThree";
+import TextArea from "@/components/TextArea";
+import PageStore from "../store/index"
 
 export default {
   components: {
     HeadOne,
     HeadTwo,
-    HeadThree
+    HeadThree,
+    TextArea
   },
   setup() {
     const tabMenu = ref(false)
     const newInput = ref("")
-    const componentArr = reactive([
-      {
-        name: "HeadOne"
-      },
-      {
-        name: "HeadTwo"
-      },
-      {
-        name: "HeadThree"
-      }
-    ])
     const poverDismiss = function () {
       console.log("失去焦点")
       tabMenu.value = false;
     }
-    const keyDownTab = function () {
-      tabMenu.value = true;
-      console.log("Tab触发")
+    const addH1 = function () {
+      const h1 = {
+        name: "HeadOne"
+      }
+      PageStore.dispatch("saveH1", h1)
+    }
+    const addH2 = function () {
+      const h2 = {
+        name: "HeadTwo"
+      }
+      PageStore.dispatch("saveH2", h2)
+    }
+    const addH3 = function () {
+      const h3 = {
+        name: "HeadThree"
+      }
+      PageStore.dispatch("saveH3", h3)
+    }
+    const addTextArea = function () {
+      const text = {
+        name: "TextArea",
+      }
+      PageStore.dispatch("saveTextArea", text)
+    }
+    const addPicArea = function () {
+      const pic = {
+        name: "HeadThree"
+      }
+      PageStore.dispatch("savePicArea", pic)
     }
     return {
       tabMenu,
       newInput,
-      componentArr,
-      keyDownTab,
-      poverDismiss
+      poverDismiss,
+      addH1,
+      addH3,
+      addH2,
+      addTextArea,
+      addPicArea,
+      PageStore
     }
   }
 }

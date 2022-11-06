@@ -90,11 +90,13 @@ import MainMenu from "@/components/MainMenu";
 import {Setting} from '@element-plus/icons-vue'
 
 // eslint-disable-next-line no-unused-vars
-import {computed, onBeforeMount, onMounted, onUnmounted, reactive, ref, toRaw} from "vue";
+import {computed, h, onBeforeMount, onMounted, onUnmounted, reactive, ref, toRaw} from "vue";
 import Mitt from "@/EventBus/mitt";
 import router from "@/router";
 import NoteStore from "../store/index"
 import UserStore from "../store/index"
+import PageStore from "../store/index"
+import {ElNotification} from "element-plus";
 
 const formRef = ref(null)
 const form = reactive({
@@ -122,6 +124,11 @@ const addNote = function () {
     for (let i in np) {
       if (np[i].name === form.name) {
         console.log("note或者page名字重复")
+        ElNotification({
+          title: '提示',
+          message: h('i', {style: 'color: teal'}, 'Note或者Page的名字不允许重复'),
+        })
+        return;
       }
     }
     if (form.type === "note") {
@@ -177,6 +184,7 @@ onMounted(() => {
     if (pageName !== lastNodeName) {
       localStorage.setItem("currentNote", pageName)
       NoteStore.commit("saveCurrentNote", pageName)
+      PageStore.dispatch("askPage", pageName)
       console.log("当前note", NoteStore.getters.getCurrenNote)
       router.push({
         name: pageName,

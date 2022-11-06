@@ -8,10 +8,10 @@
         <img class="form__icon" src=" ">
         <img class="form__icon" src=" ">
       </div>
-      <el-form-item prop="username">
+      <el-form-item prop="userName">
         <el-input
             class="form__input"
-            v-model="user.username"
+            v-model="user.userName"
             placeholder="Name"
             type="text"
         />
@@ -31,7 +31,7 @@
             placeholder="Password"
             type="password"/>
       </el-form-item>
-      <button class="form__button button submit" @click="regist">SIGN UP</button>
+      <el-button class="form__button button submit" @click="regist">SIGN UP</el-button>
     </el-form>
   </div>
 </template>
@@ -39,15 +39,20 @@
 import Mitt from "@/EventBus/mitt";
 import {onMounted, onUnmounted, reactive, ref} from "vue";
 import router from "@/router";
+// import qs from "qs";
+import Axios from "@/utils/request";
 //响应式数据
 let user = reactive({
-  username: "",
-  password: "",
-  email: ""
+  userId: "",
+  userName: "senorisky",
+  password: "lifemind123",
+  email: "zkuku253674@163.com",
+  loginTime: "",
+  createTime: ""
 })
 //规则
 const registRules = {
-  username: [
+  userName: [
     {required: true, message: 'please enter username', trigger: 'bluer'},
     {min: 4, max: 10, message: 'Length is between 4 and 10 letters', trigger: 'bluer'}
   ],
@@ -62,16 +67,24 @@ const registForm = ref()
 const regist = () => {
   registForm.value.validate((valid) => {
     if (valid) {
-      console.log(user)
-      //发送请求
-      router.push('/register')
+      user.userId = user.userName;
+      Axios.post('/user/register', user).then((res) => {
+        console.log(res)
+        if (res.data.code === 200) {
+
+          router.push('/register')
+        }
+      }).catch(function (error) {
+        console.log(error);
+      });
+
     }
   })
 }
 
 onMounted(() => {
-  Mitt.on('change', (isOpen) => {
-    console.log(isOpen)
+  Mitt.on('change', () => {
+
     let aContainer = document.querySelector("#a-container")
     aContainer.classList.toggle("is-txl");
   })

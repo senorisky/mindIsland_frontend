@@ -8,22 +8,31 @@ onMounted(() => {
   //判断刷新还是关闭页面
   let beginTime = 0;//开始时间
   let differTime = 0;//时间差
-  window.onunload = function (){
+  window.onunload = function () {
     differTime = new Date().getTime() - beginTime;
-    if(differTime <= 5) localStorage.clear();
+    if (differTime <= 5) localStorage.clear();
   };
-  window.onbeforeunload = function (){
+  window.onbeforeunload = function () {
     beginTime = new Date().getTime();
   };
 })
 </script>
-<style>
+<style lang="scss">
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
+
+::-webkit-scrollbar {
+  width: 0 !important;
+}
+
+::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0;
 }
 
 nav {

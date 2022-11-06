@@ -9,8 +9,8 @@ import router from "@/router";
 const UserStore = {
     state: {
         user: {
-            name: null,
-            id: null,
+            username: null,
+            email: ""
         }
     },
     getters: {
@@ -24,7 +24,7 @@ const UserStore = {
     },
     mutations: {
         saveUser(state, user) {
-            state.user.name = user.username;
+            state.user.username = user.username;
         }
 
     },
@@ -66,7 +66,8 @@ const NoteStore = {
         saveNote(state, note) {
             state.menuData.push(note)
             localStorage.setItem("menuData", JSON.stringify(state.menuData))
-        }, savePage(state, page) {
+        },
+        savePage(state, page) {
             state.menuData.push(page)
             localStorage.setItem("menuData", JSON.stringify(state.menuData))
         }
@@ -91,7 +92,7 @@ const NoteStore = {
             router.addRoute("space", {
                 path: "/space/" + note.name,
                 name: note.name,
-                component: () => import(`../components/NoteViews`)
+                component: () => import(`@/components/NoteView`)
             })
             router.addRoute(note.name, {
                 path: "/space/" + note.name + "/Profile",
@@ -113,12 +114,93 @@ const NoteStore = {
         }
     },
 }
-
+//存当前Page的内容
 const PageStore = {
-    state: {},
-    getters: {},
-    mutations: {},
-    actions: {},
+    state: {
+        components: []
+    },
+    getters: {
+        getComponentsArr(state) {
+            return state.components;
+        }
+    },
+    mutations: {
+        addH1(state, h1) {
+            console.log("pagestore", h1)
+            state.components.push(h1)
+            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+        },
+        addTextArea(state, text) {
+            state.components.push(text)
+            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+        },
+        addH2(state, h2) {
+            state.components.push(h2)
+            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+        },
+        addH3(state, h3) {
+            state.components.push(h3)
+            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+        },
+        addPicArea(state, pic) {
+            state.components.push(pic)
+            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+        },
+        savePageContent(state, content) {
+            state.components = content;
+            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+        },
+        saveCContent(state, data) {
+            console.log("pstoreMU", data)
+            state.components[data.id].text = data.text;
+            console.log("pstoreMU", state.components[data.id].text)
+            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+        }
+    },
+    actions: {
+        saveH1(context, h1) {
+            context.commit("addH1", h1)
+            //axios 成功后commit
+        },
+        saveH2(context, h2) {
+            context.commit("addH2", h2)
+        },
+        saveH3(context, h3) {
+            context.commit("addH3", h3)
+        },
+        saveTextArea(context, text) {
+            context.commit("addTextArea", text)
+        }, savePicArea(context, pic) {
+            context.commit("addPicArea", pic)
+        },
+        askPage(context, pageName) {
+            //axios 请求page内容
+            const data = [
+                {
+                    name: "HeadOne",
+                    text: ""
+                },
+                {
+                    name: "HeadTwo",
+                    text: ""
+                },
+                {
+                    name: "HeadThree",
+                    text: ""
+                }, {
+                    name: "TextArea",
+                    text: ""
+                }
+            ]
+            console.log("askPage", pageName)
+            context.commit("savePageContent", data)
+        },
+        saveCContent(context, data) {
+            console.log("pstoreAC")
+            context.commit("saveCContent", data)
+            //axios 保存文本框内的内容
+        }
+    },
 }
 export default createStore({
     modules: {

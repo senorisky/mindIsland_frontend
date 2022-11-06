@@ -1,14 +1,14 @@
 import axios from 'axios';
 // 创建一个自定义的Axios对象
 const Axios = axios.create({
-    baseURL: 'http://127.0.0.1:1234',
+    baseURL: 'http://localhost:8081',
     timeout: 3000,
     /*也可以不设置Content-Type，影响是在你发送请求时
     Vue会先发送OPTIONS包探测路由是否存在，需要后端也做设置响应OPTIONS
     方法，否则会报跨域错误；我这里用的Beego2，路由里不响应OPTIONS方法，
     所以我在这块设置Content-Type*/
     headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/json;charset=utf-8'
     },
     /*这个配置很重要，允许axios携带用户Cookie到后端，不设置这个的话
     Set-Cookie是无效的,除此之外,Chrome默认开启了SameSite检查，如果
@@ -27,10 +27,18 @@ Axios.interceptors.request.use(req => {
     return Promise.reject(err);
 })
 
-Axios.interceptors.response.use(res => {
+Axios.interceptors.response.use(response => {
     // 响应拦截处理
-    // console.log('响应拦截 ', res);
-    return res.data;
+    let res = response.data;
+    // 如果是返回的文件
+    if (response.config.responseType === 'blob') {
+        return res
+    }
+    // 兼容服务端返回的字符串数据
+    if (typeof res == 'string') {
+        res = res ? JSON.parse(res) : res
+    }
+    return res;
 }, error => {
     const err = error.toString();
     //按照实际的响应包进行解析，通过关键字匹配的方式
