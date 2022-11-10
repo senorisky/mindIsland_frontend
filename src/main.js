@@ -6,10 +6,8 @@ import ElementPlus from 'element-plus';
 import 'element-plus/theme-chalk/index.css';
 import './assets/icon_font/iconfont.css';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-
-
-
-
+// import Vue from 'vue'
+// Vue.config.devtools = true
 const app = createApp(App)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)

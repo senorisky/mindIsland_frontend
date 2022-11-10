@@ -2,7 +2,7 @@ import axios from 'axios';
 // 创建一个自定义的Axios对象
 const Axios = axios.create({
     baseURL: 'http://localhost:8081',
-    timeout: 3000,
+    timeout: 5000,
     /*也可以不设置Content-Type，影响是在你发送请求时
     Vue会先发送OPTIONS包探测路由是否存在，需要后端也做设置响应OPTIONS
     方法，否则会报跨域错误；我这里用的Beego2，路由里不响应OPTIONS方法，

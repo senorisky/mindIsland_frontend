@@ -78,7 +78,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="addNote">Create</el-button>
-          <el-button @click="drawer1=false">Cancel</el-button>
+          <el-button @click="CancelAdd">Cancel</el-button>
         </el-form-item>
       </el-form>
     </el-drawer>
@@ -97,7 +97,7 @@ import NoteStore from "../store/index"
 import UserStore from "../store/index"
 import PageStore from "../store/index"
 import {ElNotification} from "element-plus";
-
+//获得dom元素原型  ref绑定
 const formRef = ref(null)
 const form = reactive({
   name: undefined,
@@ -112,6 +112,10 @@ const handleClose = (done) => {
   //抽屉关闭
   done()
   formRef.value.resetFields();
+}
+const CancelAdd = function () {
+  formRef.value.resetFields();
+  drawer1.value = false;
 }
 //添加note或者page
 const showNPDrawer = function () {
@@ -138,19 +142,24 @@ const addNote = function () {
         type: "note",
         fname: "",
         path: "",
+        createTime: Date.now(),
         icon: "iconfont el-icon-note",
+        component: "NoteView",
         isOpen: false,
         children: []
       }
       NoteStore.dispatch("addNote", note)
-    } else {
+    } else if (form.type === "page") {
+      console.log(UserStore.getters.getUser)
       const page = {
         id: UserStore.getters.getUser.name + form.name,
         name: form.name,
         type: "page",
         fname: "",
+        createTime: Date.now(),
         path: "",
         icon: "iconfont el-icon-13",
+        component: "ViewPage",
         isOpen: false,
         children: []
       }
@@ -292,9 +301,10 @@ onUnmounted(() => {
   margin-right: 150px;
   top: 0px;
   left: 197px;
+  height: 100%;
   bottom: 0px;
   right: 0px; /* 距离右边0像素 */
-  margin-left: 100px;
+  margin-left: 150px;
   overflow-x: hidden; /* 当内容过多时y轴出现滚动条 */
   overflow-y: auto;
   /* background-color: red; */

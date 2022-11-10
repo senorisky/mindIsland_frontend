@@ -19,7 +19,6 @@
         <template #title>
           <el-icon :class="item.icon">
           </el-icon>
-
           <span>{{ item.name }}</span>
         </template>
       </el-menu-item>
@@ -36,6 +35,7 @@
 import {onMounted, reactive} from "vue";
 import Mitt from "@/EventBus/mitt";
 import router from "@/router";
+import NoteStore from "../store/index";
 // eslint-disable-next-line no-unused-vars
 const showNote = function (item) {
   console.log("点击Note, children")
@@ -57,6 +57,11 @@ const showNoteView = function (item) {
   } else if (item.type === "view") {
     console.log("点击NoteView")
     console.log(router.getRoutes())
+    const cname = NoteStore.getters.getCurrenNote.name;
+    if (cname !== item.fname) {
+      console.log("跨父级跳转", item.fname)
+      Mitt.emit("MenuRouter", item.fname)
+    }
     Mitt.emit("ViewRouter", item)
   } else if (item.type === "page") {
     console.log("点击Page")
@@ -67,7 +72,7 @@ const showNoteView = function (item) {
 
 }
 const catchDeep = function (type) {
-  if (type === "note"||type==="page") {
+  if (type === "note" || type === "page") {
     return true;
   }
   return false;

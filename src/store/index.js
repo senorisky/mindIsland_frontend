@@ -1,6 +1,6 @@
 import {createStore} from 'vuex'
 // eslint-disable-next-line no-unused-vars
-import axios from "axios";
+import Axios from "@/utils/request";
 // eslint-disable-next-line no-unused-vars
 import qs from "qs";
 import router from "@/router";
@@ -9,7 +9,7 @@ import router from "@/router";
 const UserStore = {
     state: {
         user: {
-            username: null,
+            name: null,
             email: ""
         }
     },
@@ -18,13 +18,15 @@ const UserStore = {
             return state.user
         },
         getTime(state) {
-            console.log("获得当前时间")
+            // console.log("获得当前时间")
             return state.date;
         }
     },
     mutations: {
         saveUser(state, user) {
-            state.user.username = user.username;
+            state.user.name = user.userName;
+            state.user.email = user.email
+            console.log("userstore", state.user)
         }
 
     },
@@ -32,8 +34,9 @@ const UserStore = {
 }
 const NoteStore = {
     state: {
-        menuData: [],
-        currentNote: new Object()
+        menuData: [],//数据结构  [{note....children[]},{note:.....children[]}....]
+        currentNote: new Object(),//{name:,id:,....children[]}
+        currentView: new Object()//{vid:,data:[{colum:,items[{name:},{name:}....]},{colum:,items[]}.....]}
     },
     getters: {
         getCurrenNote(state) {
@@ -42,10 +45,12 @@ const NoteStore = {
         getMenuData(state) {
             return state.menuData;
         },
+        getCurrentView(state) {
+            return state.currentView;
+        }
     },
     mutations: {
         saveCurrentNote(state, noteName) {
-            // console.log("store", state.notes)
             console.log("store", state.menuData)
             for (let index in state.menuData) {
                 const note = state.menuData[index]
@@ -53,6 +58,26 @@ const NoteStore = {
                     state.currentNote = note;
                 }
             }
+        },
+        saveCurrentView(state, elist) {
+            state.currentView = elist;
+            localStorage.setItem("currentView", JSON.stringify(state.currentView))
+        },
+        saveListViewById(state, view_id) {
+            console.log("saveCvid", view_id)
+            for (let index in state.currentNote.children) {
+                const child = state.currentNote.children[index];
+                if (child.id === view_id) {
+                    state.currentView = child;
+                    localStorage.setItem("currentView", JSON.stringify(state.currentView))
+                    break;
+                }
+            }
+        },
+        saveListData(state, listData) {
+            state.currentView.data = listData;
+            console.log("store","write curview")
+            localStorage.setItem("currentView", JSON.stringify(state.currentView))
         },
         saveMenuData(state, data) {
             state.menuData = data;
@@ -70,6 +95,12 @@ const NoteStore = {
         savePage(state, page) {
             state.menuData.push(page)
             localStorage.setItem("menuData", JSON.stringify(state.menuData))
+        },
+        saveNoteName(state, name) {
+            state.currentNote.name = name;
+        },
+        saveNoteInfo(state, info) {
+            state.currentNote.info = info;
         }
     },
     actions: {
@@ -79,11 +110,15 @@ const NoteStore = {
                     console.log(router.getRoutes())
                     context.commit("saveChild", {index: item, child: view})
                     router.addRoute(view.fname, {
-                        path: "/space/" + view.fname + "/" + view.name + view.id,
-                        name: view.name + view.id,
+                        path: "/space/" + view.fname + "/" + view.id,
+                        name: view.id,
                         component: () => import(`../components/${view.component}`)
                     })
                     console.log(router.getRoutes())
+                    Axios.post("/view/addView", view).then((res) => {
+                        console.log("addView", res)
+                    })
+                    break;
                 }
             }
         },
@@ -92,25 +127,43 @@ const NoteStore = {
             router.addRoute("space", {
                 path: "/space/" + note.name,
                 name: note.name,
-                component: () => import(`@/components/NoteView`)
+                component: () => import(`@/components/${note.component}`)
             })
             router.addRoute(note.name, {
                 path: "/space/" + note.name + "/Profile",
                 name: note.name + "Profile",
                 component: () => import(`../components/ProFile`)
             })
-            console.log(router.getRoutes())
-            //axios
+            console.log(router.getRoutes());
+            Axios.post("/note/addNote", note).then((res) => {
+                console.log("addNote", res);
+            })
         },
         addPage(context, page) {
             context.commit("savePage", page);
             router.addRoute("space", {
                 path: "/space/" + page.name,
                 name: page.name,
-                component: () => import(`../components/ViewPage`)
+                component: () => import(`../components/${page.component}`)
             })
             console.log(router.getRoutes())
-            //axios
+            Axios.post("/note/addNote", page).then((res) => {
+                console.log("addNote", res);
+            })
+        },
+        changeNoteName(context, name) {
+            context.commit("saveNoteName", name);
+            const note = context.state.currentNote
+            Axios.post("note/saveNote", note).then((res) => {
+                console.log("change note name", res)
+            })
+        },
+        changeNoteInfo(context, value) {
+            context.commit("saveNoteInfo", value);
+            const note = context.state.currentNote;
+            Axios.post("note/saveNote", note).then((res) => {
+                console.log("save note info", res)
+            })
         }
     },
 }

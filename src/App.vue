@@ -1,7 +1,8 @@
 <template>
   <router-view/>
 </template>
-<script setup>
+
+<script setup >
 import {onMounted} from "vue";
 
 onMounted(() => {

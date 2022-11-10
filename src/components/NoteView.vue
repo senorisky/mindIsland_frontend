@@ -4,17 +4,19 @@
   <!--  封装组件  用于展示一个Note的内容-->
   <div class="head_container">
     <!--  小图标  标题-->
-    <div>header</div>
-    <!--  描述和使用方法  -->
-    <div></div>
-    <!--   分割线 -->
-    <span></span>
+    <div style="height: 60px"></div>
+    <div class="deepInput">
+      <el-input v-model="noteName" class="PageName" readonly placeholder="Name"></el-input>
+      <el-input v-model="noteTime" class="PageTime" readonly placeholder="time"></el-input>
+      <el-input v-model="noteInfo" class="PageProfile" type="text" placeholder="profile"></el-input>
+      <el-divider style="margin-bottom: 15px !important;"/>
+    </div>
   </div>
   <!--  每一个note中添加的功能项-->
   <div class="note-view-tags">
     <el-button
         @click="Viewdetail(tag)"
-        size="small"
+        size="default"
         v-for="tag in NoteStore.getters.getCurrenNote.children"
         :key="tag"
         class="button-new-tag ml-1"
@@ -24,14 +26,13 @@
     >
       {{ tag.name }}
     </el-button>
-    <el-button class="button-new-tag ml-1" size="small" @click="drawer=true">
+    <el-button class="button-new-tag ml-1" size="default" @click="drawer=true">
       + New View
     </el-button>
   </div>
   <span class="border"></span>
 
   <div class="view-page">
-    content
     <RouterView></RouterView>
   </div>
   <div class="drawer_contrainer">
@@ -65,13 +66,16 @@
       </el-row>
     </el-drawer>
   </div>
+
 </template>
 
 <script setup name="NoteView">
-import {onMounted, onUnmounted, ref} from 'vue'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
 import Mitt from "@/EventBus/mitt";
 import NoteStore from "@/store";
 import router from "@/router";
+import {nanoid} from "nanoid"
+import {formatTime} from "@/utils/formatTime";
 
 const drawer = ref(false)
 const direction = ref('rtl')
@@ -81,15 +85,18 @@ const handleClose = (done) => {
 }
 const addTable = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
+  const nid = NoteStore.getters.getCurrenNote.id;
   const view_name = "Table"
-  const view_id = Date.now().toString();
+  const view_id = nanoid(8)
   const table = {
     name: view_name,
     fname: parent_name,
     id: view_id,
+    noteId: nid,
     icon: "iconfont el-icon-dian",
+    createTime: Date.now(),
     type: "view",
-    path: parent_name + "/" + view_name + view_id,
+    path: parent_name + "/" + view_id,
     component: "TableView",
     isOpen: false
   }
@@ -97,15 +104,18 @@ const addTable = function () {
 }
 const addList = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
+  const nid = NoteStore.getters.getCurrenNote.id;
   const view_name = "List"
-  const view_id = Date.now().toString();
+  const view_id = nanoid(8);
   const List = {
     name: view_name,
     fname: parent_name,
+    noteId: nid,
+    createTime: Date.now(),
     id: view_id,
     icon: "iconfont el-icon-dian",
     type: "view",
-    path: parent_name + "/" + view_name + view_id,
+    path: parent_name + "/" + view_id,
     component: "ListView",
     isOpen: false
   }
@@ -113,15 +123,18 @@ const addList = function () {
 }
 const addGallry = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
+  const nid = NoteStore.getters.getCurrenNote.id;
   const view_name = "Gallery"
-  const view_id = Date.now().toString();
+  const view_id = nanoid(8)
   const Gallery = {
     name: view_name,
     fname: parent_name,
     id: view_id,
+    noteId: nid,
     icon: "iconfont el-icon-dian",
+    createTime: Date.now(),
     type: "view",
-    path: parent_name + "/" + view_name + view_id,
+    path: parent_name + "/" + view_id,
     component: "GalleryView",
     isOpen: false
   }
@@ -129,7 +142,7 @@ const addGallry = function () {
 }
 const Viewdetail = function (tag) {
 //  替换 routerview 显示数据
-  const routeName = tag.name + tag.id
+  const routeName = tag.id
   console.log("点击NoteView了", routeName)
   router.push({
     name: routeName,
@@ -138,22 +151,43 @@ const Viewdetail = function (tag) {
     }
   });
 }
+const noteName = computed({
+  get() {
+    return NoteStore.getters.getCurrenNote.name;
+  }, set(value) {
+    NoteStore.dispatch("changeNoteName", value)
+  }
+})
+const noteTime = computed({
+      get() {
+        const timeStamp = NoteStore.getters.getCurrenNote.createTime;
+        return formatTime(timeStamp);
+      }
+    }
+)
+const noteInfo = computed({
+  get() {
+    return NoteStore.getters.getCurrenNote.info;
+  }, set(value) {
+    NoteStore.dispatch("changeNoteInfo", value)
+  }
+})
+
 // let views = reactive([]);
 onMounted(() => {
 //点击note的view
-  console.log(NoteStore.getters.getCurrenNote.children)
   Mitt.on("ViewRouter", (item) => {
         //数据
-        const ViewName = item.name + item.id
-        console.log(item.type, ViewName)
-        console.log("点击NoteView了", ViewName)
-        // const children = NoteStore.getters.getchildren;
-        router.push({
-          name: ViewName,
-          params: {
-            data: ""
-          }
-        });
+        const vid = item.id
+        const lastView = NoteStore.getters.getCurrentView;
+        if (item.id !== lastView.id) {
+          console.log(item.type, vid)
+          NoteStore.commit("saveListViewById", vid);
+          console.log("点击NoteView了")
+          router.push({
+            name: vid
+          });
+        }
       }
   )
 })
@@ -195,6 +229,9 @@ onUnmounted(() => {
   display: flex;
 }
 
+.view-page {
+
+}
 
 .border {
   margin-left: 3px;
@@ -222,14 +259,33 @@ onUnmounted(() => {
   transform: scale(0.8);
 }
 
-.head_container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  flex-grow: 0;
-  position: sticky;
-  left: 0px;
+
+.el-input.PageName {
+  margin-top: 20px;
+  font-size: 48px !important;
+  line-height: 48px !important;
+  --el-input-height: 64px !important;
 }
+
+.el-input.PageTime {
+  margin-top: 5px;
+  font-size: 16px !important;
+}
+
+.el-input.PageProfile {
+  margin-top: 10px;
+  font-size: 16px !important;
+}
+
+.deepInput {
+  :deep(.el-input__wrapper) {
+    box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
+    cursor: default;
+
+    .el-input__inner {
+      cursor: default !important;
+    }
+  }
+}
+
 </style>

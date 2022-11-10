@@ -2,17 +2,21 @@
   font-family: "iconfont"; /* Project id 3734385 */
   /* Color fonts */
   src: 
-       url('iconfont.woff2?t=1667455973930') format('woff2'),
-       url('iconfont.woff?t=1667455973930') format('woff'),
-       url('iconfont.ttf?t=1667455973930') format('truetype');
+       url('iconfont.woff2?t=1667891818730') format('woff2'),
+       url('iconfont.woff?t=1667891818730') format('woff'),
+       url('iconfont.ttf?t=1667891818730') format('truetype');
 }
 
 .iconfont {
   font-family: "iconfont" !important;
-  font-size: 16px;
+  font-size: 48px;
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.el-icon-dian:before {
+  content: "\e608";
 }
 
 .el-icon-note:before {
@@ -21,10 +25,6 @@
 
 .el-icon-13:before {
   content: "\e640";
-}
-
-.el-icon-dian:before {
-  content: "\ec1e";
 }
 
 .el-icon-table:before {

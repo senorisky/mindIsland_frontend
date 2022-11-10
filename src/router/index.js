@@ -11,6 +11,7 @@ import ProFile from "@/components/ProFile";
 // import store from "@/store";
 import UserStore from "../store/index.js"
 import NoteStore from "@/store";
+import PageStore from "@/store";
 // import {toRaw} from "vue";
 
 const routes = [
@@ -38,11 +39,11 @@ const router = createRouter({
 //全局路由守卫 前置  初始和每一次路由跳转的时候进行跳转  next放行
 router.beforeEach((to, from, next) => {
     console.log("跳转到", to.path)
+    console.log("from", from.path)
     //处理刷新界面动态路由丢失问题
     const user = UserStore.getters.getUser;
-    // console.log(user.name) //动态数组丢失说明用户刷新了页面
+    console.log(user)
     //首页时候，直接跳转（不是动态页面）
-    console.log(user.name)
     if (to.path === "/") {
         next();
     }//登录进主页时候，直接跳转（不是动态页面）
@@ -56,7 +57,7 @@ router.beforeEach((to, from, next) => {
                 router.addRoute("space", {
                     path: "/space/" + father.name,
                     name: father.name,
-                    component: () => import(`../components/NoteViews`)
+                    component: () => import(`../components/${father.component}`)
                 })
                 router.addRoute(father.name, {
                     path: "/space/" + father.name + "/Profile",
@@ -67,15 +68,15 @@ router.beforeEach((to, from, next) => {
                 router.addRoute("space", {
                     path: "/space/" + father.name,
                     name: father.name,
-                    component: () => import(`../components/ViewPage`)
+                    component: () => import(`../components/${father.component}`)
                 })
             }
             if (father.children && father.children.length) {
                 for (let child of father.children) {
                     // console.log(child.id, father.name)
                     router.addRoute(father.name, {
-                        path: "/space/" + father.name + "/" + child.name + child.id,
-                        name: child.name + child.id,
+                        path: "/space/" + father.name + "/" + child.id,
+                        name: child.id,
                         component: () => import(`../components/${child.component}`)
                     })
                 }
@@ -94,7 +95,7 @@ router.beforeEach((to, from, next) => {
                 router.addRoute("space", {
                     path: "/space/" + father.name,
                     name: father.name,
-                    component: () => import(`../components/NoteViews`)
+                    component: () => import(`../components/${father.component}`)
                 })
                 router.addRoute(father.name, {
                     path: "/space/" + father.name + "/Profile",
@@ -105,7 +106,7 @@ router.beforeEach((to, from, next) => {
                 router.addRoute("space", {
                     path: "/space/" + father.name,
                     name: father.name,
-                    component: () => import(`../components/ViewPage`)
+                    component: () => import(`../components/${father.component}`)
                 })
             }
             //
@@ -113,8 +114,8 @@ router.beforeEach((to, from, next) => {
                 for (let child of father.children) {
                     // console.log(child.id, father.name)
                     router.addRoute(father.name, {
-                        path: "/space/" + father.name + "/" + child.name + child.id,
-                        name: child.name + child.id,
+                        path: "/space/" + father.name + "/" + child.id,
+                        name: child.id,
                         component: () => import(`../components/${child.component}`)
                     })
                 }
@@ -124,13 +125,14 @@ router.beforeEach((to, from, next) => {
         console.log("重新加载动态路由")
         //重新vuex
         console.log("to", to.name)
-        // let noteName = localStorage.getItem("currentNote")
         if (to.name != undefined)
             localStorage.setItem("currentNote", to.name)
-        // console.log("取notes", notes)
+        //恢复vuex数据
+        console.log(menuData)
+        PageStore.commit("savePageContent", JSON.parse(localStorage.getItem("curPageContent")))
         UserStore.commit("saveUser", JSON.parse(localStorage.getItem("user")))
-        // console.log("存vuex", NoteStore.getters.getNotes)
         NoteStore.commit("saveMenuData", menuData)
+        NoteStore.commit("saveCurrentView", JSON.parse(localStorage.getItem("currentView")))
         NoteStore.commit("saveCurrentNote", localStorage.getItem("currentNote"))
         console.log("路由动态加载了数据")
         next({...to, replace: true})
@@ -138,7 +140,6 @@ router.beforeEach((to, from, next) => {
         console.log("正常路由")
         next()
     }
-    console.log(router.getRoutes())
 
 })
 export default router
