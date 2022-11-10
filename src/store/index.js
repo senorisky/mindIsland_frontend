@@ -36,7 +36,8 @@ const NoteStore = {
     state: {
         menuData: [],//数据结构  [{note....children[]},{note:.....children[]}....]
         currentNote: new Object(),//{name:,id:,....children[]}
-        currentView: new Object()//{vid:,data:[{colum:,items[{name:},{name:}....]},{colum:,items[]}.....]}
+        currentView: new Object(),//{vid:,data:[{colum:,items[{name:},{name:}....]},{colum:,items[]}.....]}
+        currentViewData: new Object()
     },
     getters: {
         getCurrenNote(state) {
@@ -44,6 +45,9 @@ const NoteStore = {
         },
         getMenuData(state) {
             return state.menuData;
+        },
+        getCurrentViewData(state) {
+            return state.currentViewData;
         },
         getCurrentView(state) {
             return state.currentView;
@@ -59,11 +63,15 @@ const NoteStore = {
                 }
             }
         },
-        saveCurrentView(state, elist) {
-            state.currentView = elist;
-            localStorage.setItem("currentView", JSON.stringify(state.currentView))
+        saveCurrentViewData(state, elist) {
+            state.currentViewData = elist;
+            localStorage.setItem("currentViewData", JSON.stringify(state.currentViewData))
         },
-        saveListViewById(state, view_id) {
+        saveCurrentView(state, view) {
+            state.currentView = view;
+            localStorage.setItem("currentView",JSON.stringify(view));
+        },
+        saveCurrentViewById(state, view_id) {
             console.log("saveCvid", view_id)
             for (let index in state.currentNote.children) {
                 const child = state.currentNote.children[index];
@@ -75,9 +83,9 @@ const NoteStore = {
             }
         },
         saveListData(state, listData) {
-            state.currentView.data = listData;
-            console.log("store","write curview")
-            localStorage.setItem("currentView", JSON.stringify(state.currentView))
+            state.currentViewData.data = listData;
+            console.log("store", "write curview")
+            localStorage.setItem("currentViewData", JSON.stringify(state.currentViewData))
         },
         saveMenuData(state, data) {
             state.menuData = data;

@@ -133,6 +133,7 @@ router.beforeEach((to, from, next) => {
         UserStore.commit("saveUser", JSON.parse(localStorage.getItem("user")))
         NoteStore.commit("saveMenuData", menuData)
         NoteStore.commit("saveCurrentView", JSON.parse(localStorage.getItem("currentView")))
+        NoteStore.commit("saveCurrentViewData", JSON.parse(localStorage.getItem("currentViewData")))
         NoteStore.commit("saveCurrentNote", localStorage.getItem("currentNote"))
         console.log("路由动态加载了数据")
         next({...to, replace: true})

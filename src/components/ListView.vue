@@ -105,7 +105,7 @@ const CancelAdd = function () {
   drawer1.value = false;
 }
 const addItem = function () {
-  const vid = NoteStore.getters.getCurrentView.viewId;
+  const vid = NoteStore.getters.getCurrentView.id;
   // console.log("getElist", vid)
   const tmp = toRaw(listData);
   tmp.value[curindex.value].items.push({
@@ -114,7 +114,7 @@ const addItem = function () {
     des: form.desc
   })
   const elist = {
-    id: NoteStore.getters.getCurrentView.id,
+    id: NoteStore.getters.getCurrentViewData.id,
     viewId: vid,
     datas: tmp.value
   }
@@ -146,8 +146,8 @@ onBeforeMount(() => {
 })
 
 function AskListData() {
-  const vid = NoteStore.getters.getCurrentView.viewId;
-  console.log("getElist", vid)
+  const vid = NoteStore.getters.getCurrentView.id;
+  console.log("getElist", NoteStore.getters.getCurrentView)
   Axios.get("/elist/getEList", {
     params: {
       viewId: vid
@@ -162,7 +162,7 @@ function AskListData() {
     }
     listData.value = res.data.elist.datas
     // console.log(listData)
-    NoteStore.commit("saveCurrentView", elist)
+    NoteStore.commit("saveCurrentViewData", elist)
   }).catch(function (error) {
     loading.value = false;
     console.log(error);

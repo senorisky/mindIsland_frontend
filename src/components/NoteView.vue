@@ -182,7 +182,7 @@ onMounted(() => {
         const lastView = NoteStore.getters.getCurrentView;
         if (item.id !== lastView.id) {
           console.log(item.type, vid)
-          NoteStore.commit("saveListViewById", vid);
+          NoteStore.commit("saveCurrentViewById", vid);
           console.log("点击NoteView了")
           router.push({
             name: vid
