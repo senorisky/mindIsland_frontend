@@ -1,7 +1,7 @@
 <template>
   <!--  二级标题  -->
   <div>
-    <el-input v-model="h2" class="deepInput" placeholder="二级标题" >
+    <el-input v-model="h2" class="deepInput" @blur="saveH2" placeholder="二级标题">
     </el-input>
   </div>
 </template>
@@ -23,14 +23,18 @@ const h2 = computed({
   set(value) {
     const h2t = {
       text: value,
-      id: props.id
+      index
     }
-    PageStore.dispatch("saveCContent", h2t)
+    PageStore.dispatch("saveCContenttmp", h2t)
   }
 })
-
-
-
+const saveH2 = function () {
+  const h2t = {
+    text: h2.value,
+    index
+  }
+  PageStore.dispatch("saveCContent", h2t)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -43,6 +47,7 @@ const h2 = computed({
   :deep(.el-input__wrapper) {
     box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
     cursor: default;
+
     .el-input__inner {
       cursor: default !important;
       font-weight: 570 !important;

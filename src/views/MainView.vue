@@ -32,7 +32,7 @@
     <!--  Note的内容页  -->
     <RouterView></RouterView>
   </div>
-  <div class="drawer_contrainer">
+  <div class="view_drawer_contrainer">
     <!--  添加note 或者page的抽屉 内有表单  -->
     <el-drawer
         v-model="drawer1"
@@ -97,6 +97,7 @@ import NoteStore from "../store/index"
 import UserStore from "../store/index"
 import PageStore from "../store/index"
 import {ElNotification} from "element-plus";
+import {nanoid} from "nanoid";
 //获得dom元素原型  ref绑定
 const formRef = ref(null)
 const form = reactive({
@@ -136,9 +137,11 @@ const addNote = function () {
       }
     }
     if (form.type === "note") {
+      const nid = nanoid(8)
       const note = {
-        id: UserStore.getters.getUser.name + form.name,
+        id: UserStore.getters.getUser.name + nid,
         name: form.name,
+        userId: UserStore.getters.getUser.id,
         type: "note",
         fname: "",
         path: "",
@@ -150,10 +153,12 @@ const addNote = function () {
       }
       NoteStore.dispatch("addNote", note)
     } else if (form.type === "page") {
+      const pid = nanoid(8)
       console.log(UserStore.getters.getUser)
       const page = {
-        id: UserStore.getters.getUser.name + form.name,
+        id: UserStore.getters.getUser.name + pid,
         name: form.name,
+        userId: UserStore.getters.getUser.id,
         type: "page",
         fname: "",
         createTime: Date.now(),
@@ -172,34 +177,28 @@ const addNote = function () {
 onMounted(() => {
   //只点击带孩子的note进行的路由跳转
   Mitt.on("MenuRouter", (noteName) => {
-    // console.log("store", NoteStore.getters.getCurrenNote)
     const lastNodeName = NoteStore.getters.getCurrenNote.name;
-    console.log("lastNode", lastNodeName)
     if (noteName !== lastNodeName) {
       localStorage.setItem("currentNote", noteName)
-      NoteStore.commit("saveCurrentNote", noteName)
+      NoteStore.commit("saveCurrentNoteByName", noteName)
+      const nid = NoteStore.getters.getCurrenNote.id
       console.log("当前note", NoteStore.getters.getCurrenNote)
       router.push({
-        name: noteName + "Profile",
-        params: {
-          note: noteName
-        }
+        name: nid + "Profile",
       });
     }
   })
   Mitt.on("PageRouter", (pageName) => {
     const lastNodeName = NoteStore.getters.getCurrenNote.name;
-    console.log("lastNode", lastNodeName)
+    // console.log("lastNode", lastNodeName)
     if (pageName !== lastNodeName) {
       localStorage.setItem("currentNote", pageName)
-      NoteStore.commit("saveCurrentNote", pageName)
-      PageStore.dispatch("askPage", pageName)
+      NoteStore.commit("saveCurrentNoteByName", pageName)
+      const pid = NoteStore.getters.getCurrenNote.id
+      PageStore.dispatch("askPage", NoteStore.getters.getCurrenNote.id)
       console.log("当前note", NoteStore.getters.getCurrenNote)
       router.push({
-        name: pageName,
-        params: {
-          note: pageName
-        }
+        name: pid,
       });
     }
   })
@@ -210,9 +209,8 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.drawer_contrainer {
+.view_drawer_contrainer {
   position: relative;
-
 }
 
 :deep(::-webkit-scrollbar) {

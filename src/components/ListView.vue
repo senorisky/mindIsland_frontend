@@ -1,20 +1,44 @@
 <template>
   <!-- 多列表项组件 -->
-  <el-scrollbar v-loading="loading"
-                element-loading-text="Loading this maybe cast seconds..."
-                style="height:350px;margin-bottom: 20px; overflow-y: hidden">
-    <div class="todoList_container">
-      <div :class='small?"list":"lists"' v-for="(item,index) in listData.value" :key="index">
-        <el-table :data="item.items" max-height="300px" :cell-style="ItemStyle" stripe>
-          <el-table-column class="list_tittle" prop="name" :label="item.colum"/>
-        </el-table>
-        <el-button class="mt-4" style="width: 100%;" @click="ShowItemDw(index)"
-        >Add Item
-        </el-button>
+  <div style="display: flex;justify-content: center">
+    <el-scrollbar v-loading="loading.value"
+                  element-loading-text="Loading this maybe cast seconds..."
+                  style="height:350px;margin-bottom: 20px; overflow-y: hidden">
+      <div class="todoList_container">
+        <div :class='small?"lists":"list"' v-for="(item,index) in listData" :key="index">
+          <el-table :data="item.items" max-height="300px"
+                    :cell-style="ItemStyle" stripe>
+            <el-table-column class="list_tittle" prop="name" :label="item.colum"/>
+            <el-table-column align="right">
+              <template #header>
+                <el-button
+                    size="small"
+                    type="danger"
+                    @click="DialogConfirm(index)"
+                    :icon="Delete"
+                />
+              </template>
+              <template #default="scope">
+                <el-button size="small" @click="ItemDetail(scope.$index, scope.row)" :icon="Edit"
+                />
+                <el-button
+                    size="small"
+                    :icon="Delete"
+                    @click="deleteItem(index,scope.$index, scope.row)"
+                />
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-button class="mt-4" style="width: 100%;" @click="ShowItemDw(index)"
+          >Add Item
+          </el-button>
+        </div>
       </div>
-    </div>
-  </el-scrollbar>
-  <div class="drawer_contrainer">
+
+    </el-scrollbar>
+    <el-button @click=" drawer2 = true;">New colum</el-button>
+  </div>
+  <div class="list_drawer_contrainer">
     <!--  列表项的抽屉  -->
     <el-drawer
         v-model="drawer1"
@@ -58,31 +82,68 @@
         </el-form-item>
       </el-form>
     </el-drawer>
+    <el-drawer
+        v-model="drawer2"
+        title="Give  basic  info"
+        :direction="direction"
+    >
+      <el-input style="margin-bottom: 20px" v-model="newColum" placeholder="give colum a name"/>
+      <el-button type="primary" @click="addListColum">Create</el-button>
+      <el-button @click="drawer2=false">Cancel</el-button>
+    </el-drawer>
   </div>
+  <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
+    <span>
+      You are deleting a list, please confirm. This is an operation that cannot be undone!!
+    </span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="centerDialogVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="deletList(columIndex)">
+          Confirm
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup name="ListView">
-import {computed, h, onBeforeMount, reactive, ref, toRaw} from "vue";
+import {computed, h, onBeforeMount, reactive, ref} from "vue";
 import Axios from "@/utils/request";
 import NoteStore from "../store/index"
 import {ElNotification} from "element-plus";
+import {
+  Delete,
+  Edit,
+} from '@element-plus/icons-vue'
 
-let curindex = ref(null);
+const centerDialogVisible = ref(false)
+const columIndex = ref();
+const DialogConfirm = function (index) {
+  console.log("弹出dialog")
+  centerDialogVisible.value = true;
+  columIndex.value = index;
+}
+const newColum = ref(null);
 const formRef = ref(null)
 const form = reactive({
   name: undefined,
   date: ref(""),
   desc: "",
-  type: "note"
+  type: "note",
+  index: undefined
 })
-let drawer1 = ref(false)
+const drawer1 = ref(false)
+const drawer2 = ref(false)
 const small = computed({
   get() {
-    return listData.length > 2;
+    console.log("style", listData.value.length > 1)
+    if (listData.value.length > 1)
+      return true;
+    return false;
   }
 })
 const ItemStyle = reactive({
-  "display": "block",
   // "color": "inherit",
   // " text-decoration": "none",
   // "box-shadow": " rgb(15 15 15 / 10%) 0px 0px 0px 1px, rgb(15 15 15 / 10%) 0px 2px 4px",
@@ -105,45 +166,69 @@ const CancelAdd = function () {
   drawer1.value = false;
 }
 const addItem = function () {
-  const vid = NoteStore.getters.getCurrentView.id;
-  // console.log("getElist", vid)
-  const tmp = toRaw(listData);
-  tmp.value[curindex.value].items.push({
-    name: form.name,
-    date: form.date,
-    des: form.desc
-  })
-  const elist = {
-    id: NoteStore.getters.getCurrentViewData.id,
-    viewId: vid,
-    datas: tmp.value
+  if (form.name === undefined) {
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, '添加失败，名字不可为空'),
+    })
+    return;
   }
-  // console.log("addItem", listData.value[curindex.value])
-  Axios.post("/elist/saveEList", elist).then((res) => {
-    if (res.code === 200) {
-      console.log(res);
-      listData.value = res.data.elist.datas
-      NoteStore.commit("saveListData", listData)
-    } else {
-      ElNotification({
-        title: '提示',
-        message: h('i', {style: 'color: teal'}, '添加失败，请稍后重试'),
-      })
-      return;
-    }
-  }).catch(function (error) {
-    console.log(error);
-    // alert('系统繁忙请联系管理员');
-  });
+  NoteStore.dispatch("addItem", form)
   formRef.value.resetFields();
   drawer1.value = false;
 }
-const loading = ref(true)
-const listData = reactive([])
+const addListColum = function () {
+
+  if (newColum.value === null) {
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, '添加失败，名字不可为空'),
+    })
+    return;
+  }
+  const list = {
+    colum: newColum,
+    items: []
+  }
+  NoteStore.dispatch("addListColum", list);
+
+  drawer2.value = false;
+}
+const loading = computed({
+  get() {
+    if (NoteStore.getters.getCurrentViewData.datas != undefined)
+      return true;
+    else {
+      return false;
+    }
+  }
+})
+const listData = computed({
+  get() {
+    return NoteStore.getters.getCurrentViewData.datas;
+  }
+})
 onBeforeMount(() => {
   console.log("list beforemount")
   AskListData()
 })
+//index是下标位置，row是一个Proxy
+const deletList = function (index) {
+  centerDialogVisible.value = false;
+  // console.log("deleteList", index)
+  NoteStore.dispatch("deleteList", index)
+}
+const deleteItem = function (Lindex, index, row) {
+  // console.log("deleteItem", Lindex, index, row)
+  const param = {
+    Lindex,
+    index, row
+  }
+  NoteStore.dispatch("deleteListItem", param);
+}
+const ItemDetail = function () {
+
+}
 
 function AskListData() {
   const vid = NoteStore.getters.getCurrentView.id;
@@ -153,18 +238,16 @@ function AskListData() {
       viewId: vid
     }
   }).then((res) => {
-    console.log("ask for elist", res);
-    loading.value = false;
-    const elist = {
-      id: res.data.elist.id,
-      viewId: res.data.elist.viewId,
-      items: res.data.elist.datas
+    if (res.code === 200) {
+      console.log("ask for elist", res);
+      const elist = {
+        id: res.data.elist.id,
+        viewId: res.data.elist.viewId,
+        datas: res.data.elist.datas
+      }
+      NoteStore.commit("saveCurrentViewData", elist)
     }
-    listData.value = res.data.elist.datas
-    // console.log(listData)
-    NoteStore.commit("saveCurrentViewData", elist)
   }).catch(function (error) {
-    loading.value = false;
     console.log(error);
     ElNotification({
       title: '提示',
@@ -175,21 +258,26 @@ function AskListData() {
 
 const ShowItemDw = (index) => {
   drawer1.value = true;
-  curindex.value = index;
+  form.index = index
   form.date = Date.now();
 }
 </script>
 
 <style lang="scss" scoped>
-.drawer_contrainer {
+
+.list_drawer_contrainer {
+  :deep( .el-drawer.rtl ) {
+    height: auto;
+    margin-top: 350px;
+    margin-bottom: 20px;
+  }
+
   position: relative;
   height: auto;
 }
 
-:deep( .el-drawer.rtl ) {
-  height: auto;
-  margin-bottom: 20px;
-
+.dialog-footer button:first-child {
+  margin-right: 10px;
 }
 
 :deep(.el-scrollbar__wrap) {
@@ -202,31 +290,25 @@ const ShowItemDw = (index) => {
   height: 50px;
   margin: 10px;
   text-align: center;
+
+
   border-radius: 4px;
 }
 
-.list_tittle {
-  position: absolute;
-  width: 100%;
-}
 
-.list {
+.list { //单列表样式
   flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
   border-radius: 4px;
-  position: relative;
-  width: 280px;
+  width: 500px;
   margin-left: 10px;
   margin-right: 10px;
 }
 
-.lists {
+.lists { //多列表样式
   flex-shrink: 0;
   text-align: center;
   border-radius: 4px;
-  width: 40%;
+  width: 290px;
   margin-left: 10px;
   margin-right: 10px;
 }

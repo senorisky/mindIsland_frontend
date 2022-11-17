@@ -32,7 +32,7 @@
 <script setup>
 
 import Mitt from "@/EventBus/mitt";
-import {onMounted, onUnmounted, reactive, ref, toRaw} from "vue";
+import {onMounted, onUnmounted, reactive, ref} from "vue";
 import router from "@/router";
 // eslint-disable-next-line no-unused-vars
 import qs from "qs";
@@ -41,15 +41,47 @@ import NoteStore from "@/store";
 import Axios from "@/utils/request";
 
 const user = reactive({
-  username: "",
+  userName: "",
   password: "lifemind123",
-  email: "zkuku253674@163.com"
+  email: "zkuku253674@163.com",
+  userId: ""
 })
 
 
 const DynamicMenuRouter = function (menuData) {
   //动态路由存在本地-----退出登录时候清空
   localStorage.setItem('menuData', JSON.stringify(menuData))
+  console.log("login menu", menuData)
+  for (let father of menuData) {
+    if (father.type === "note") {
+      router.addRoute("space", {
+        path: "/space/" + father.id,
+        name: father.id,
+        component: () => import(`../components/${father.component}`)
+      })
+      router.addRoute(father.id, {
+        path: "/space/" + father.id + "/Profile",
+        name: father.id + "Profile",
+        component: () => import(`../components/ProFile`)
+      })
+    } else if (father.type === "page") {
+      router.addRoute("space", {
+        path: "/space/" + father.id,
+        name: father.id,
+        component: () => import(`../components/${father.component}`)
+      })
+    }
+    //
+    if (father.children && father.children.length) {
+      for (let child of father.children) {
+        router.addRoute(father.id, {
+          path: "/space/" + father.id + "/" + child.id,
+          name: child.id,
+          component: () => import(`../components/${child.component}`)
+        })
+      }
+    }
+  }
   NoteStore.commit("saveMenuData", menuData)
 }
 const loginForm = ref()
@@ -60,12 +92,13 @@ const login = function () {
       Axios.post('/user/login', user).then((res) => {
         console.log(res)
         if (res.code === 200) {
-          console.log(res)
           DynamicMenuRouter(res.data.menuData);
-          const rowUsed = toRaw(res.data.user)
+          const rowUsed = res.data.user
           console.log(rowUsed)
           UserStore.commit("saveUser", res.data.user)
+          UserStore.commit("saveToken".res.data.token);
           localStorage.setItem("user", JSON.stringify(rowUsed))
+          localStorage.setItem("token", res.data.token)
           router.push('/space')
         }
       }).catch(function (error) {

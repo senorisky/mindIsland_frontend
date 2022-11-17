@@ -22,7 +22,9 @@
           <span>{{ item.name }}</span>
         </template>
       </el-menu-item>
-      <div v-if="catchDeep(item.type)" style="height: 7px;width: 180px;background: #f5f5f5"></div>
+      <div v-if="catchDeep(item.type)" style="height: 7px;width: 180px;background: #f5f5f5">
+
+      </div>
     </template>
   </div>
 
@@ -55,9 +57,9 @@ const showNoteView = function (item) {
     console.log(router.getRoutes())
     Mitt.emit("MenuRouter", noteName)
   } else if (item.type === "view") {
-    console.log("点击NoteView")
     console.log(router.getRoutes())
     const cname = NoteStore.getters.getCurrenNote.name;
+    console.log("点击NoteView", cname)
     if (cname !== item.fname) {
       console.log("跨父级跳转", item.fname)
       Mitt.emit("MenuRouter", item.fname)

@@ -2,15 +2,18 @@
   <!-- page的头 包括名字 日期 简介 横幅 -->
   <div>
     <div class="deepInput">
-      <div style="height: 100px"></div>
-      <el-input class="PageName" placeholder="Name"></el-input>
-      <el-input class="PageTime" placeholder="time"></el-input>
-      <el-input class="PageProfile" type="text" placeholder="profile"></el-input>
-      <el-divider/>
+      <div style="height: 100px ;"></div>
+      <div style="display: flex; align-items: flex-start ;flex-direction: column">
+        <el-input readonly v-model="pageName" class="PageName" placeholder="Name"></el-input>
+        <el-date-picker readonly type="datetime" format="YYYY-MM-DD HH:mm:ss" v-model="PageTime" class="PageTime"
+                        placeholder="time"></el-date-picker>
+        <el-input class="PageProfile" type="text" placeholder="profile"></el-input>
+        <el-divider/>
+      </div>
     </div>
     <!-- page的内容 图文混合排版 -->
     <div class="PageContent">
-      <component v-for="(item,index) in (PageStore.getters.getComponentsArr)" :is="item.name" :key="index"
+      <component v-for="(item,index) in (pageData)" :is="item.name" :key="index"
                  :id=index style="margin-top: 7px"></component>
       <div style="display: flex; align-items: center">
         <el-popover ref="popover" placement="right" :width="60" trigger="click">
@@ -31,12 +34,13 @@
 </template>
 
 <script name="ViewPage">
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import HeadTwo from "@/components/HeadTwo";
 import HeadOne from "@/components/HeadOne";
 import HeadThree from "@/components/HeadThree";
 import TextArea from "@/components/TextArea";
 import PageStore from "../store/index"
+import NoteStore from "../store/index"
 
 export default {
   components: {
@@ -54,38 +58,68 @@ export default {
     }
     const addH1 = function () {
       const h1 = {
-        name: "HeadOne"
+        name: "HeadOne",
+        text: "",
+        pageId: NoteStore.getters.getCurrenNote.id
       }
-      PageStore.dispatch("saveH1", h1)
+      PageStore.dispatch("addH1", h1)
     }
     const addH2 = function () {
       const h2 = {
-        name: "HeadTwo"
+        name: "HeadTwo",
+        text: "",
+        pageId: NoteStore.getters.getCurrenNote.id
+
       }
-      PageStore.dispatch("saveH2", h2)
+      PageStore.dispatch("addH2", h2)
     }
+    const pageName = computed({
+      get() {
+        return NoteStore.getters.getCurrenNote.name;
+      }
+    })
+    const PageTime = computed({
+      get() {
+        return NoteStore.getters.getCurrenNote.createTime;
+      }
+    })
     const addH3 = function () {
       const h3 = {
-        name: "HeadThree"
+        name: "HeadThree",
+        text: "",
+        pageId: NoteStore.getters.getCurrenNote.id
+
       }
-      PageStore.dispatch("saveH3", h3)
+      PageStore.dispatch("addH3", h3)
     }
     const addTextArea = function () {
       const text = {
         name: "TextArea",
+        text: "",
+        pageId: NoteStore.getters.getCurrenNote.id
       }
-      PageStore.dispatch("saveTextArea", text)
+      PageStore.dispatch("addTextArea", text)
     }
+    const pageData = computed({
+      get() {
+        console.log("getPageData", PageStore.getters.getPageData)
+        return PageStore.getters.getComponentsArr;
+      }
+    })
     const addPicArea = function () {
       const pic = {
-        name: "HeadThree"
+        name: "HeadThree",
+        text: "",
+        pageId: NoteStore.getters.getCurrenNote.id
       }
-      PageStore.dispatch("savePicArea", pic)
+      PageStore.dispatch("addTextArea", pic)
     }
     return {
       tabMenu,
       newInput,
       poverDismiss,
+      pageData,
+      PageTime, pageName,
       addH1,
       addH3,
       addH2,
@@ -101,7 +135,7 @@ export default {
 <style lang="scss" scoped>
 .el-input.PageName {
   margin-top: 20px;
-  font-size: 48px !important;
+  font-size: 36px !important;
   line-height: 48px !important;
   --el-input-height: 48px !important;
 }

@@ -37,75 +37,44 @@ const router = createRouter({
 })
 
 //全局路由守卫 前置  初始和每一次路由跳转的时候进行跳转  next放行
-router.beforeEach((to, from, next) => {
-    console.log("跳转到", to.path)
+router.beforeEach(async (to, from, next) => {
+    console.log("跳转到", to)
     console.log("from", from.path)
     //处理刷新界面动态路由丢失问题
     const user = UserStore.getters.getUser;
-    console.log(user)
+    console.log(user.name != null)
     //首页时候，直接跳转（不是动态页面）
     if (to.path === "/") {
         next();
     }//登录进主页时候，直接跳转（不是动态页面）
-    else if (to.path === "/space/ProFile" && from.path === "/" && user.name !== null) {
-        let menuData = [];
-        menuData = JSON.parse(localStorage.getItem("menuData"));
-        console.log("登录", menuData)
-        for (let father of menuData) {
-            // console.log(father.name)
-            if (father.type === "note") {
-                router.addRoute("space", {
-                    path: "/space/" + father.name,
-                    name: father.name,
-                    component: () => import(`../components/${father.component}`)
-                })
-                router.addRoute(father.name, {
-                    path: "/space/" + father.name + "/Profile",
-                    name: father.name + "Profile",
-                    component: () => import(`../components/ProFile`)
-                })
-            } else if (father.type === "page") {
-                router.addRoute("space", {
-                    path: "/space/" + father.name,
-                    name: father.name,
-                    component: () => import(`../components/${father.component}`)
-                })
-            }
-            if (father.children && father.children.length) {
-                for (let child of father.children) {
-                    // console.log(child.id, father.name)
-                    router.addRoute(father.name, {
-                        path: "/space/" + father.name + "/" + child.id,
-                        name: child.id,
-                        component: () => import(`../components/${child.component}`)
-                    })
-                }
-            }
-        }
-        console.log(router.getRoutes())
+    else if (user.name !== null) {
+        console.log("正常路由")
+        console.log(JSON.parse(localStorage.getItem("menuData")))
         next()
     } else if (user.name === null) {
         //从localStorage中获取菜单树。然后重新加载路由
         let menuData = [];
         menuData = JSON.parse(localStorage.getItem("menuData"));
+        console.log(localStorage)
         console.log(menuData)
+        // await NoteStore.dispatch("AskMenuData")
         for (let father of menuData) {
             // console.log(father.name)
             if (father.type === "note") {
                 router.addRoute("space", {
-                    path: "/space/" + father.name,
-                    name: father.name,
+                    path: "/space/" + father.id,
+                    name: father.id,
                     component: () => import(`../components/${father.component}`)
                 })
-                router.addRoute(father.name, {
-                    path: "/space/" + father.name + "/Profile",
-                    name: father.name + "Profile",
+                router.addRoute(father.id, {
+                    path: "/space/" + father.id + "/Profile",
+                    name: father.id + "Profile",
                     component: () => import(`../components/ProFile`)
                 })
             } else if (father.type === "page") {
                 router.addRoute("space", {
-                    path: "/space/" + father.name,
-                    name: father.name,
+                    path: "/space/" + father.id,
+                    name: father.id,
                     component: () => import(`../components/${father.component}`)
                 })
             }
@@ -113,8 +82,8 @@ router.beforeEach((to, from, next) => {
             if (father.children && father.children.length) {
                 for (let child of father.children) {
                     // console.log(child.id, father.name)
-                    router.addRoute(father.name, {
-                        path: "/space/" + father.name + "/" + child.id,
+                    router.addRoute(father.id, {
+                        path: "/space/" + father.id + "/" + child.id,
                         name: child.id,
                         component: () => import(`../components/${child.component}`)
                     })
@@ -125,16 +94,18 @@ router.beforeEach((to, from, next) => {
         console.log("重新加载动态路由")
         //重新vuex
         console.log("to", to.name)
-        if (to.name != undefined)
-            localStorage.setItem("currentNote", to.name)
+        if (to.name === undefined) {
+            console.log("vuex cnote")
+            NoteStore.commit("saveCurrentNote", JSON.parse(localStorage.getItem("currentNote")))
+        }
         //恢复vuex数据
-        console.log(menuData)
-        PageStore.commit("savePageContent", JSON.parse(localStorage.getItem("curPageContent")))
         UserStore.commit("saveUser", JSON.parse(localStorage.getItem("user")))
+        UserStore.commit("saveToken", localStorage.getItem("token"))
+        // console.log("vuex menudata")
         NoteStore.commit("saveMenuData", menuData)
+        // console.log("vuex cview")
         NoteStore.commit("saveCurrentView", JSON.parse(localStorage.getItem("currentView")))
-        NoteStore.commit("saveCurrentViewData", JSON.parse(localStorage.getItem("currentViewData")))
-        NoteStore.commit("saveCurrentNote", localStorage.getItem("currentNote"))
+        PageStore.commit("savePageData", JSON.parse(localStorage.getItem("curPageData")))
         console.log("路由动态加载了数据")
         next({...to, replace: true})
     } else {

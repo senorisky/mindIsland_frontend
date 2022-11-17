@@ -1,6 +1,6 @@
 <template>
   <div class="inputDeep">
-    <el-input v-model="textc" autosize type="textarea" placeholder="正文内容"/>
+    <el-input v-model="textc" autosize type="textarea" @blur="saveTextc" placeholder="正文内容"/>
   </div>
 </template>
 
@@ -21,13 +21,20 @@ let textc = computed(
       },
       set(value) {
         const data = {
-          id: props.id,
+          index,
           text: value
         }
-        PageStore.dispatch("saveCContent", data)
+        PageStore.dispatch("saveCContenttmp", data)
       }
     }
 )
+const saveTextc = function () {
+  const data = {
+    text: textc.value,
+    index
+  }
+  PageStore.dispatch("saveCContent", data);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -35,6 +42,7 @@ let textc = computed(
   font-size: 17px !important;
 
 }
+
 .inputDeep {
   :deep(.el-textarea__inner) {
     box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;

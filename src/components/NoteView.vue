@@ -14,24 +14,37 @@
   </div>
   <!--  每一个note中添加的功能项-->
   <div class="note-view-tags">
-    <el-button
+    <el-tag
         @click="Viewdetail(tag)"
-        size="default"
-        v-for="tag in NoteStore.getters.getCurrenNote.children"
+        size="large"
+        v-for="(tag,index) in NoteStore.getters.getCurrenNote.children"
         :key="tag"
         class="button-new-tag ml-1"
         :disable-transitions="false"
-        @close="handleClose(tag)"
+        @close="DialogConfirm(tag,index)"
+        closable
         effect="plain"
     >
       {{ tag.name }}
-    </el-button>
+    </el-tag>
     <el-button class="button-new-tag ml-1" size="default" @click="drawer=true">
       + New View
     </el-button>
   </div>
   <span class="border"></span>
-
+  <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
+    <span>
+      You are deleting a view, please confirm. This is an operation that cannot be undone!!
+    </span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="centerDialogVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="handleDelete">
+          Confirm
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
   <div class="view-page">
     <RouterView></RouterView>
   </div>
@@ -77,11 +90,26 @@ import router from "@/router";
 import {nanoid} from "nanoid"
 import {formatTime} from "@/utils/formatTime";
 
+const centerDialogVisible = ref(false)
+const dtag = ref();
+const dtagindex = ref();
+const DialogConfirm = function (tag, index) {
+  console.log("删除view", tag, index)
+  centerDialogVisible.value = true;
+  dtag.value = tag;
+  dtagindex.value = index;
+}
 const drawer = ref(false)
 const direction = ref('rtl')
 
-const handleClose = (done) => {
-  done()
+const handleDelete = function () {
+  const data = {
+    view: dtag.value,
+    index: dtagindex.value
+  }
+  NoteStore.dispatch("deleteView", data);
+  centerDialogVisible.value = false;
+  //删了view之后会在vuex跳转到note的主页
 }
 const addTable = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
@@ -142,14 +170,18 @@ const addGallry = function () {
 }
 const Viewdetail = function (tag) {
 //  替换 routerview 显示数据
-  const routeName = tag.id
-  console.log("点击NoteView了", routeName)
-  router.push({
-    name: routeName,
-    params: {
-      data: ""
-    }
-  });
+  console.log("tagRouter", tag)
+  const vid = tag.id
+  const lastView = NoteStore.getters.getCurrentView;
+  if (tag.id !== lastView.id) {
+    console.log(tag.type, vid)
+    NoteStore.commit("saveCurrentViewById", vid);
+    NoteStore.commit("saveCurrentViewData", new Object())
+    console.log("点击NoteView了")
+    router.push({
+      name: vid
+    });
+  }
 }
 const noteName = computed({
   get() {
@@ -180,9 +212,11 @@ onMounted(() => {
         //数据
         const vid = item.id
         const lastView = NoteStore.getters.getCurrentView;
-        if (item.id !== lastView.id) {
+        console.log("lastview", lastView)
+        if ((lastView===null)||(item.id !== lastView.id)) {
           console.log(item.type, vid)
           NoteStore.commit("saveCurrentViewById", vid);
+          NoteStore.commit("saveCurrentViewData", new Object())
           console.log("点击NoteView了")
           router.push({
             name: vid
@@ -200,6 +234,15 @@ onUnmounted(() => {
 .el-button {
   margin-right: 5px !important;
   margin-left: 0 !important;
+}
+
+:deep(.el-tag) {
+  margin-right: 5px;
+}
+
+:deep(.el-tag):hover {
+  background: #f5f5f5;
+  cursor: pointer;
 }
 
 :deep(.el-drawer.rtl) {

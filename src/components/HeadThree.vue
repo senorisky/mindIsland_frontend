@@ -1,7 +1,7 @@
 <template>
   <!--  三级标题  -->
   <div>
-    <el-input v-model="h3" class="deepInput" placeholder="三级标题" >
+    <el-input v-model="h3" class="deepInput" @blur="saveH3" placeholder="三级标题">
     </el-input>
   </div>
 </template>
@@ -25,11 +25,17 @@ const h3 = computed({
           text: value,
           id: props.id
         }
-        PageStore.dispatch("saveCContent", h3t)
+        PageStore.dispatch("saveCContenttmp", h3t)
       }
     }
 )
-
+const saveH3 = function () {
+  const h3t = {
+    text: h3.value,
+    index
+  }
+  PageStore.dispatch("saveCContent", h3t)
+}
 
 </script>
 

@@ -4,14 +4,18 @@ import Axios from "@/utils/request";
 // eslint-disable-next-line no-unused-vars
 import qs from "qs";
 import router from "@/router";
-// import {toRaw} from "vue";
+import {ElNotification} from "element-plus";
+import {h} from "vue";
+
 
 const UserStore = {
     state: {
         user: {
             name: null,
-            email: ""
-        }
+            email: "",
+            id: ""
+        },
+        token: String
     },
     getters: {
         getUser(state) {
@@ -26,9 +30,12 @@ const UserStore = {
         saveUser(state, user) {
             state.user.name = user.userName;
             state.user.email = user.email
+            state.user.id = user.userId
             console.log("userstore", state.user)
+        },
+        saveToken(state, token) {
+            state.token = token;
         }
-
     },
     actions: {},
 }
@@ -36,8 +43,11 @@ const NoteStore = {
     state: {
         menuData: [],//数据结构  [{note....children[]},{note:.....children[]}....]
         currentNote: new Object(),//{name:,id:,....children[]}
-        currentView: new Object(),//{vid:,data:[{colum:,items[{name:},{name:}....]},{colum:,items[]}.....]}
+        currentView: new Object(),
         currentViewData: new Object()
+        //{id:,vid:,items:[{colum:,items[{name:},{name:}....]},{colum:,items[]}.....]}  ListData
+        //{id:,viewId:,colums:["",""....],datas:[{},{}....{}]}  TableData
+        //PageData[]
     },
     getters: {
         getCurrenNote(state) {
@@ -54,22 +64,27 @@ const NoteStore = {
         }
     },
     mutations: {
-        saveCurrentNote(state, noteName) {
+        saveCurrentNoteByName(state, noteName) {
             console.log("store", state.menuData)
             for (let index in state.menuData) {
                 const note = state.menuData[index]
                 if (note.name === noteName) {
                     state.currentNote = note;
+                    localStorage.setItem("currentNote", JSON.stringify(note));
                 }
             }
         },
-        saveCurrentViewData(state, elist) {
-            state.currentViewData = elist;
-            localStorage.setItem("currentViewData", JSON.stringify(state.currentViewData))
+        saveCurrentNote(state, note) {
+            console.log("store", state.menuData)
+            state.currentNote = note;
+        },
+        saveCurrentViewData(state, data) {
+            state.currentViewData = data;
+            // localStorage.setItem("currentViewData", JSON.stringify(state.currentViewData))
         },
         saveCurrentView(state, view) {
             state.currentView = view;
-            localStorage.setItem("currentView",JSON.stringify(view));
+            localStorage.setItem("currentView", JSON.stringify(view));
         },
         saveCurrentViewById(state, view_id) {
             console.log("saveCvid", view_id)
@@ -83,35 +98,57 @@ const NoteStore = {
             }
         },
         saveListData(state, listData) {
-            state.currentViewData.data = listData;
+            state.currentViewData.datas = listData;
             console.log("store", "write curview")
-            localStorage.setItem("currentViewData", JSON.stringify(state.currentViewData))
         },
         saveMenuData(state, data) {
             state.menuData = data;
+            // localStorage.setItem("menuData", JSON.stringify(data))
+            console.log("保存菜单数据", state.menuData)
         },
         saveChild(state, data) {
             console.log(data.child)
             state.menuData[data.index].children.push(data.child)
-            localStorage.setItem("menuData", JSON.stringify(state.menuData))
+            // localStorage.setItem("menuData", JSON.stringify(state.menuData))
             console.log(state.menuData)
         },
         saveNote(state, note) {
             state.menuData.push(note)
-            localStorage.setItem("menuData", JSON.stringify(state.menuData))
+            // localStorage.setItem("menuData", JSON.stringify(state.menuData))
         },
         savePage(state, page) {
             state.menuData.push(page)
-            localStorage.setItem("menuData", JSON.stringify(state.menuData))
+            // localStorage.setItem("menuData", JSON.stringify(state.menuData))
         },
         saveNoteName(state, name) {
             state.currentNote.name = name;
+            // localStorage.setItem("menuData", JSON.stringify(state.menuData))
         },
         saveNoteInfo(state, info) {
             state.currentNote.info = info;
+            // localStorage.setItem("menuData", JSON.stringify(state.menuData))
         }
     },
     actions: {
+        AskTableData(context, vid) {
+            console.log("askTableData", vid)
+            Axios.get("/etable/getTable", {
+                params: {
+                    viewId: vid
+                }
+            }).then((res) => {
+                if (res.code === 200) {
+                    console.log("读取tabledata成功", res)
+                    context.commit("saveCurrentViewData", res.data.etable)
+                }
+                ElNotification({
+                    title: '提示',
+                    message: h('i', {style: 'color: teal'}, res.msg),
+                })
+            }).catch(function (error) {
+                console.log("读取tabledata出错", error)
+            })
+        },
         addChild(context, view) {
             for (let item in context.state.menuData) {
                 if (context.state.menuData[item].name === view.fname) {
@@ -145,18 +182,23 @@ const NoteStore = {
             console.log(router.getRoutes());
             Axios.post("/note/addNote", note).then((res) => {
                 console.log("addNote", res);
+                if (res.code === 200) {
+                    context.commit("saveMenuData", res.data.notes);
+                }
             })
         },
         addPage(context, page) {
-            context.commit("savePage", page);
             router.addRoute("space", {
                 path: "/space/" + page.name,
                 name: page.name,
                 component: () => import(`../components/${page.component}`)
             })
-            console.log(router.getRoutes())
-            Axios.post("/note/addNote", page).then((res) => {
-                console.log("addNote", res);
+            console.log("addPage", UserStore.state.user)
+            Axios.post("/note/addPage", page).then((res) => {
+                console.log("addPage", res);
+                if (res.code === 200) {
+                    context.commit("savePage", page);
+                }
             })
         },
         changeNoteName(context, name) {
@@ -172,94 +214,330 @@ const NoteStore = {
             Axios.post("note/saveNote", note).then((res) => {
                 console.log("save note info", res)
             })
+        },
+        addListColum(context, list) {
+            const tmp = context.state.currentViewData;
+            console.log("addlistColum", tmp)
+            tmp.datas.push(list);
+            Axios.post("/elist/saveEList", tmp).then((res) => {
+                if (res.code === 200) {
+                    console.log("listAddColum", res);
+                    context.commit("saveCurrentViewData", tmp);
+                } else {
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, '添加失败'),
+                    })
+                    return;
+                }
+            }).catch(function (error) {
+                console.log(error);
+                // alert('系统繁忙请联系管理员');
+            });
+        },
+        addTableColum(context, name) {
+            Axios.get("/etable/addTableColumn", {
+                params: {
+                    name,
+                    viewId: context.state.currentView.id
+                }
+            }).then((res) => {
+                if (res.code === 200) {
+                    console.log("addtableColumn", res.data)
+                    context.commit("saveCurrentViewData", res.data.etable)
+                }
+                ElNotification({
+                    title: '提示',
+                    message: h('i', {style: 'color: teal'}, res.msg),
+                })
+            }).catch(function (error) {
+                console.log(error)
+                ElNotification({
+                    title: '提示',
+                    message: h('i', {style: 'color: teal'}, "系统错误，请检查网络"),
+                })
+            })
+        },
+        addItem(context, form) {
+//为列表添加item
+            // console.log("getElist", vid)
+            const tmp = context.state.currentViewData;
+            console.log("addItem", form.index)
+            tmp.datas[form.index].items.push({
+                name: form.name,
+                date: form.date,
+                des: form.desc
+            })
+            // console.log("addItem", listData.value[curindex.value])
+            Axios.post("/elist/saveEList", tmp).then((res) => {
+                if (res.code === 200) {
+                    console.log(res);
+                    context.commit("saveCurrentViewData", tmp)
+                }
+                ElNotification({
+                    title: '提示',
+                    message: h('i', {style: 'color: teal'}, res.msg),
+                })
+
+            }).catch(function (error) {
+                console.log(error);
+                // alert('系统繁忙请联系管理员');
+            });
+        },
+        addTableItem(context) {
+            Axios.get("/etable/addTableItem", {
+                params: {
+                    viewId: context.state.currentView.id
+                }
+            }).then((res) => {
+                console.log("addTableItem", res)
+                if (res.code === 200) {
+                    context.commit("saveCurrentViewData", res.data.etable)
+                } else {
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, res.msg),
+                    })
+                }
+
+            }).catch(function (error) {
+                console.log(error)
+            })
+        },
+        deleteList(context, index) {
+            const tmp = context.state.currentViewData;
+
+            tmp.datas.splice(index, 1);
+            console.log("deleteL", tmp.datas, index)
+            Axios.post("/elist/saveEList", tmp).then((res) => {
+                if (res.code === 200) {
+                    console.log("listAddColum", res);
+                    context.commit("saveCurrentViewData", tmp);
+                } else {
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, '删除失败'),
+                    })
+                    return;
+                }
+            }).catch(function (error) {
+                console.log(error);
+                // alert('系统繁忙请联系管理员');
+            });
+        },
+        deleteListItem(context, param) {
+            const l = param.Lindex;
+            const index = param.index;
+            const tmp = context.state.currentViewData;
+            tmp.datas[l].items.splice(index, 1);
+            // console.log("deleteListItem", tmp, index)
+            Axios.post("/elist/saveEList", tmp).then((res) => {
+                if (res.code === 200) {
+                    // console.log("listAddColum", res);
+                    context.commit("saveCurrentViewData", tmp);
+                } else {
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, '删除失败'),
+                    })
+                    return;
+                }
+            }).catch(function (error) {
+                console.log(error);
+                // alert('系统繁忙请联系管理员');
+            });
+        },
+        deleteTableItem(context, index) {
+            Axios.get("/etable/deleteTableItem", {
+                params: {
+                    index,
+                    viewId: context.state.currentView.id
+                }
+            }).then(((res) => {
+                console.log("deleteTableItem", res)
+                if (res.code === 200) {
+                    context.commit("saveCurrentViewData", res.data.etable)
+                } else {
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, res.msg),
+                    })
+                }
+            })).catch(function (error) {
+                console.log(error)
+            })
+        },
+        deleteTableColum(context, item) {
+            Axios.get("/etable/deleteTableColum", {
+                params: {
+                    name: item,
+                    viewId: context.state.currentView.id
+                }
+            }).then((res) => {
+                // console.log("deleteTableColum")
+                if (res.code === 200) {
+                    context.commit("saveCurrentViewData", res.data.etable);
+                } else {
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, res.msg),
+                    })
+                }
+            }).catch(function (error) {
+                console.log(error)
+            })
+        },
+        deleteView(context, data) {
+            Axios.post("/view/deleteView", data.view).then((res) => {
+                if (res.code === 200) {
+                    console.log(res)
+                    const tmp = context.state.menuData
+                    for (let n in tmp) {
+                        if (tmp[n].id === data.view.noteId) {
+                            console.log("删除view", data.index)
+                            tmp[n].children.splice(data.index, 1)
+                            context.commit("saveMenuData", tmp)
+                            context.commit("saveCurrentNote", tmp[n])
+                        }
+                    }
+                    context.commit("saveCurrentView", new Object())
+                    context.commit("saveCurrentViewData", new Object())
+                    router.push({
+                        name: context.state.currentNote.name + "Profile",
+                    });
+                } else {
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, res.msg),
+                    })
+                }
+            }).catch(function (error) {
+                console.log(error)
+            })
         }
     },
 }
 //存当前Page的内容
 const PageStore = {
     state: {
-        components: []
+        pageData: new Object()//  {noteId,imgPath,pageContent[{name:text:},{}.....]
     },
     getters: {
         getComponentsArr(state) {
-            return state.components;
+            console.log("getPageComponent", state.pageData.datas)
+            return state.pageData.datas;
+        },
+        getPageData(state) {
+            return state.pageData;
         }
     },
     mutations: {
+
         addH1(state, h1) {
             console.log("pagestore", h1)
-            state.components.push(h1)
-            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+            state.pageData.datas.push(h1)
+            localStorage.setItem("curPageData", JSON.stringify(state.pageData))
         },
         addTextArea(state, text) {
-            state.components.push(text)
-            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+            state.pageData.datas.push(text)
+            localStorage.setItem("curPageData", JSON.stringify(state.pageData))
         },
         addH2(state, h2) {
-            state.components.push(h2)
-            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+            state.pageData.datas.push(h2)
+            localStorage.setItem("curPageData", JSON.stringify(state.pageData))
         },
         addH3(state, h3) {
-            state.components.push(h3)
-            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+            state.pageData.datas.push(h3)
+            localStorage.setItem("curPageData", JSON.stringify(state.pageData))
         },
         addPicArea(state, pic) {
-            state.components.push(pic)
-            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+            state.pageData.datas.push(pic)
+            localStorage.setItem("curPageData", JSON.stringify(state.pageData))
         },
-        savePageContent(state, content) {
-            state.components = content;
-            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+        savePageData(state, content) {
+            state.pageData = content;
+            localStorage.setItem("curPageData", JSON.stringify(state.pageData))
         },
         saveCContent(state, data) {
-            console.log("pstoreMU", data)
-            state.components[data.id].text = data.text;
-            console.log("pstoreMU", state.components[data.id].text)
-            localStorage.setItem("curPageContent", JSON.stringify(state.components))
+            //修改当前Page的当前组件的内容
+            // console.log("pstoreMU", data)
+            console.log("saveCContent", state.pageData)
+            state.pageData.datas[data.index].text = data.text;
+            console.log("pstoreMU", state.pageData.datas[data.index].text)
+            localStorage.setItem("curPageData", JSON.stringify(state.pageData))
         }
     },
     actions: {
-        saveH1(context, h1) {
-            context.commit("addH1", h1)
+        addH1(context, h1) {
+            Axios.post("/page/addPageContent", h1).then((res) => {
+                if (res.code === 200) {
+                    context.commit("addH1", h1)
+                }
+            })
             //axios 成功后commit
         },
-        saveH2(context, h2) {
-            context.commit("addH2", h2)
+        addH2(context, h2) {
+            Axios.post("/page/addPageContent", h2).then((res) => {
+                if (res.code === 200) {
+                    context.commit("addH2", h2)
+                }
+            })
         },
-        saveH3(context, h3) {
-            context.commit("addH3", h3)
+        addH3(context, h3) {
+            Axios.post("/page/addPageContent", h3).then((res) => {
+                if (res.code === 200) {
+                    context.commit("addH3", h3)
+                }
+            })
         },
-        saveTextArea(context, text) {
-            context.commit("addTextArea", text)
+        addTextArea(context, text) {
+            Axios.post("/page/addPageContent", text).then((res) => {
+                console.log("addPageContent", res)
+                if (res.code === 200) {
+                    context.commit("addTextArea", text)
+                }
+            })
         }, savePicArea(context, pic) {
-            context.commit("addPicArea", pic)
+            Axios.post("/page/savePageContent", context.state.pageData).then((res) => {
+                console.log("savePagePic", res)
+                if (res.code === 200) {
+                    context.commit("addPicArea", pic)
+                }
+            })
         },
         askPage(context, pageName) {
-            //axios 请求page内容
-            const data = [
-                {
-                    name: "HeadOne",
-                    text: ""
-                },
-                {
-                    name: "HeadTwo",
-                    text: ""
-                },
-                {
-                    name: "HeadThree",
-                    text: ""
-                }, {
-                    name: "TextArea",
-                    text: ""
-                }
-            ]
             console.log("askPage", pageName)
-            context.commit("savePageContent", data)
+            //axios 请求page内容
+            Axios.get("/page/getPageData", {
+                params: {
+                    noteId: pageName
+                }
+            }).then((res) => {
+                console.log("askPage", res)
+                if (res.code === 200) {
+                    console.log("askPageDat", res.data)
+                    context.commit("savePageData", res.data.page)
+                }
+            })
+        },
+        saveCContenttmp(context, data) {
+            //axios 保存当前 文本框内的内容
+            context.commit("saveCContent", data)
         },
         saveCContent(context, data) {
-            console.log("pstoreAC")
-            context.commit("saveCContent", data)
-            //axios 保存文本框内的内容
+            //做一个比较如果内容相同就不发请求也不更新
+            const index = data.index;
+            if (context.state.pageData.datas[index].text !== data.text) {
+                context.commit("saveCContent", data)
+                console.log("pstoreAC", context.state.pageData)
+                Axios.post("/page/savePageContent", context.state.pageData).then((res) => {
+                    console.log("savePage", res)
+                    if (res.code === 200) {
+                        console.log("savePageSuccess", res.data)
+                        context.commit("savePageData", res.data.page)
+                    }
+                })
+            }
         }
     },
 }

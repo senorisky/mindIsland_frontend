@@ -41,6 +41,7 @@ import {onMounted, onUnmounted, reactive, ref} from "vue";
 import router from "@/router";
 // import qs from "qs";
 import Axios from "@/utils/request";
+import {nanoid} from "nanoid";
 //响应式数据
 let user = reactive({
   userId: "",
@@ -67,7 +68,7 @@ const registForm = ref()
 const regist = () => {
   registForm.value.validate((valid) => {
     if (valid) {
-      user.userId = user.userName;
+      user.userId = nanoid(8);
       Axios.post('/user/register', user).then((res) => {
         console.log(res)
         if (res.data.code === 200) {

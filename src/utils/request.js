@@ -8,7 +8,8 @@ const Axios = axios.create({
     方法，否则会报跨域错误；我这里用的Beego2，路由里不响应OPTIONS方法，
     所以我在这块设置Content-Type*/
     headers: {
-        'Content-Type': 'application/json;charset=utf-8'
+        'Content-Type': 'application/json;charset=utf-8',
+        'lm-token': localStorage.getItem("token")
     },
     /*这个配置很重要，允许axios携带用户Cookie到后端，不设置这个的话
     Set-Cookie是无效的,除此之外,Chrome默认开启了SameSite检查，如果
