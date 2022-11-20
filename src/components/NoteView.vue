@@ -54,9 +54,13 @@
         v-model="drawer"
         title="Pick a view "
         :direction="direction"
-        :before-close="handleClose"
     >
-      <el-row :gutter="20">
+      <el-row>
+        <el-col>
+          <el-input class="deepInput" placeholder="输入view的名称 或采用默认名" v-model="v_name"></el-input>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20" style="margin-top: 20px">
         <el-col :span="8">
           <div class="grid-content ep-bg-purple addViews" @click="addGallry">
             <el-icon class="iconfont el-icon-gallery "></el-icon>
@@ -66,7 +70,7 @@
         <el-col :span="8">
           <div class="grid-content ep-bg-purple addViews" @click="addList">
             <el-icon class="iconfont el-icon-nav-list"></el-icon>
-            <div>列表</div>
+            <div>多列表</div>
           </div>
         </el-col>
         <el-col :span="8">
@@ -74,6 +78,14 @@
             <el-icon class="iconfont el-icon-table ">
             </el-icon>
             <div>表格</div>
+          </div>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20" style="margin-top: 10px">
+        <el-col :span="8">
+          <div class="grid-content ep-bg-purple addViews" @click="addSingleList">
+            <el-icon class="iconfont el-icon-danxiangxuanze "></el-icon>
+            <div style="margin-top: 5px">单列表</div>
           </div>
         </el-col>
       </el-row>
@@ -86,10 +98,10 @@
 import {computed, onMounted, onUnmounted, ref} from 'vue'
 import Mitt from "@/EventBus/mitt";
 import NoteStore from "@/store";
-import router from "@/router";
 import {nanoid} from "nanoid"
 import {formatTime} from "@/utils/formatTime";
 
+const v_name = ref("");
 const centerDialogVisible = ref(false)
 const dtag = ref();
 const dtagindex = ref();
@@ -115,7 +127,10 @@ const addTable = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
   const view_name = "Table"
-  const view_id = nanoid(8)
+  if (v_name.value !== "") {
+    view_name.value = v_name.value;
+  }
+  const view_id = nanoid(10)
   const table = {
     name: view_name,
     fname: parent_name,
@@ -130,11 +145,36 @@ const addTable = function () {
   }
   NoteStore.dispatch("addChild", table)
 }
+const addSingleList = function () {
+  const parent_name = NoteStore.getters.getCurrenNote.name;
+  const nid = NoteStore.getters.getCurrenNote.id;
+  const view_name = "SList"
+  if (v_name.value !== "") {
+    view_name.value = v_name.value;
+  }
+  const view_id = nanoid(10);
+  const List = {
+    name: view_name,
+    fname: parent_name,
+    noteId: nid,
+    createTime: Date.now(),
+    id: view_id,
+    icon: "iconfont el-icon-dian",
+    type: "view",
+    path: parent_name + "/" + view_id,
+    component: "sListView",
+    isOpen: false
+  }
+  NoteStore.dispatch("addChild", List)
+}
 const addList = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
   const view_name = "List"
-  const view_id = nanoid(8);
+  if (v_name.value !== "") {
+    view_name.value = v_name.value;
+  }
+  const view_id = nanoid(10);
   const List = {
     name: view_name,
     fname: parent_name,
@@ -153,7 +193,10 @@ const addGallry = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
   const view_name = "Gallery"
-  const view_id = nanoid(8)
+  if (v_name.value !== "") {
+    view_name.value = v_name.value;
+  }
+  const view_id = nanoid(10)
   const Gallery = {
     name: view_name,
     fname: parent_name,
@@ -175,12 +218,10 @@ const Viewdetail = function (tag) {
   const lastView = NoteStore.getters.getCurrentView;
   if (tag.id !== lastView.id) {
     console.log(tag.type, vid)
-    NoteStore.commit("saveCurrentViewById", vid);
     NoteStore.commit("saveCurrentViewData", new Object())
+    NoteStore.commit("saveCurrentViewById", vid);
+    NoteStore.dispatch("askViewData")
     console.log("点击NoteView了")
-    router.push({
-      name: vid
-    });
   }
 }
 const noteName = computed({
@@ -190,6 +231,7 @@ const noteName = computed({
     NoteStore.dispatch("changeNoteName", value)
   }
 })
+
 const noteTime = computed({
       get() {
         const timeStamp = NoteStore.getters.getCurrenNote.createTime;
@@ -213,14 +255,12 @@ onMounted(() => {
         const vid = item.id
         const lastView = NoteStore.getters.getCurrentView;
         console.log("lastview", lastView)
-        if ((lastView===null)||(item.id !== lastView.id)) {
+        if ((lastView === null) || (item.id !== lastView.id)) {
           console.log(item.type, vid)
+          NoteStore.commit("saveCurrentViewData", new Object());
           NoteStore.commit("saveCurrentViewById", vid);
-          NoteStore.commit("saveCurrentViewData", new Object())
+          NoteStore.dispatch("askViewData")
           console.log("点击NoteView了")
-          router.push({
-            name: vid
-          });
         }
       }
   )
@@ -254,6 +294,17 @@ onUnmounted(() => {
 :deep(.el-overlay) {
   background-color: transparent !important;
   margin-right: 20px;
+}
+
+.deepInput {
+  :deep(.el-input__wrapper) {
+    box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
+    cursor: default;
+
+    .el-input__inner {
+      cursor: default !important;
+    }
+  }
 }
 
 :deep( .el-drawer ) {

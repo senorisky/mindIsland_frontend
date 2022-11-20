@@ -11,7 +11,6 @@
           :property="item"
           :label="item"
           width="180"
-
       >
         <template #header>
           <div style="display: flex;justify-content:space-between;align-items:flex-end;">
@@ -85,7 +84,7 @@
 </template>
 
 <script setup>
-import {computed, onBeforeMount, onMounted, reactive, ref} from "vue";
+import {computed, onMounted, reactive, ref} from "vue";
 import NoteStore from "../store/index"
 import {Delete} from "@element-plus/icons-vue";
 
@@ -142,12 +141,11 @@ const deleteRow = function (index) {
 const addTableItem = function () {
   NoteStore.dispatch("addTableItem")
 }
-onBeforeMount(() => {
-  const vid = NoteStore.getters.getCurrentView.id;
-  NoteStore.dispatch("AskTableData", vid)
-})
-onMounted(() => {
 
+onMounted(() => {
+  if (tableData.value === undefined) {
+    NoteStore.dispatch("askViewData")
+  }
 })
 </script>
 
@@ -168,6 +166,7 @@ onMounted(() => {
     margin-top: 450px;
     margin-bottom: 20px;
   }
+
   position: relative;
   height: auto;
 }

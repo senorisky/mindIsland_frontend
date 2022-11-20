@@ -96,15 +96,12 @@ const login = function () {
           const rowUsed = res.data.user
           console.log(rowUsed)
           UserStore.commit("saveUser", res.data.user)
-          UserStore.commit("saveToken".res.data.token);
+          UserStore.commit("saveToken",res.data.token);
           localStorage.setItem("user", JSON.stringify(rowUsed))
           localStorage.setItem("token", res.data.token)
           router.push('/space')
         }
-      }).catch(function (error) {
-        console.log(error);
-        alert('系统繁忙请联系管理员');
-      });
+      })
 
     }
   })

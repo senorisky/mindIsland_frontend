@@ -47,6 +47,7 @@ const NoteStore = {
         currentViewData: new Object()
         //{id:,vid:,items:[{colum:,items[{name:},{name:}....]},{colum:,items[]}.....]}  ListData
         //{id:,viewId:,colums:["",""....],datas:[{},{}....{}]}  TableData
+        //{id:,viewId:,[{name:,url:},......]}  Gallery
         //PageData[]
     },
     getters: {
@@ -80,7 +81,6 @@ const NoteStore = {
         },
         saveCurrentViewData(state, data) {
             state.currentViewData = data;
-            // localStorage.setItem("currentViewData", JSON.stringify(state.currentViewData))
         },
         saveCurrentView(state, view) {
             state.currentView = view;
@@ -103,65 +103,129 @@ const NoteStore = {
         },
         saveMenuData(state, data) {
             state.menuData = data;
-            // localStorage.setItem("menuData", JSON.stringify(data))
+            localStorage.setItem("menuData", JSON.stringify(data))
             console.log("保存菜单数据", state.menuData)
         },
         saveChild(state, data) {
             console.log(data.child)
             state.menuData[data.index].children.push(data.child)
-            // localStorage.setItem("menuData", JSON.stringify(state.menuData))
+            localStorage.setItem("menuData", JSON.stringify(state.menuData))
             console.log(state.menuData)
         },
         saveNote(state, note) {
             state.menuData.push(note)
-            // localStorage.setItem("menuData", JSON.stringify(state.menuData))
+            localStorage.setItem("menuData", JSON.stringify(state.menuData))
         },
         savePage(state, page) {
             state.menuData.push(page)
-            // localStorage.setItem("menuData", JSON.stringify(state.menuData))
+            localStorage.setItem("menuData", JSON.stringify(state.menuData))
         },
         saveNoteName(state, name) {
             state.currentNote.name = name;
-            // localStorage.setItem("menuData", JSON.stringify(state.menuData))
+            localStorage.setItem("menuData", JSON.stringify(state.menuData))
         },
         saveNoteInfo(state, info) {
             state.currentNote.info = info;
-            // localStorage.setItem("menuData", JSON.stringify(state.menuData))
+            localStorage.setItem("menuData", JSON.stringify(state.menuData))
+        },
+        saveLastGalleryPic(state, pic) {
+            state.currentViewData.datas.push(pic);
         }
     },
     actions: {
-        AskTableData(context, vid) {
-            console.log("askTableData", vid)
-            Axios.get("/etable/getTable", {
-                params: {
-                    viewId: vid
-                }
-            }).then((res) => {
-                if (res.code === 200) {
-                    console.log("读取tabledata成功", res)
-                    context.commit("saveCurrentViewData", res.data.etable)
-                }
-                ElNotification({
-                    title: '提示',
-                    message: h('i', {style: 'color: teal'}, res.msg),
+        askViewData(context) {
+            const view = context.state.currentView;
+            if (view.component === "TableView") {
+                console.log("askTableData", view.id)
+                Axios.get("/etable/getTable", {
+                    params: {
+                        viewId: view.id
+                    }
+                }).then((res) => {
+                    if (res.code === 200) {
+                        console.log("读取tabledata成功", res)
+                        context.commit("saveCurrentViewData", res.data.etable)
+                        router.push({
+                            name: view.id
+                        });
+                    }
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, res.msg),
+                    })
+                }).catch(function (error) {
+                    console.log("读取tabledata出错", error)
                 })
-            }).catch(function (error) {
-                console.log("读取tabledata出错", error)
-            })
+            } else if ((view.component === "ListView") || (view.component === "sListView")) {
+                console.log("getElist", NoteStore.getters.getCurrentView)
+                Axios.get("/elist/getEList", {
+                    params: {
+                        viewId: view.id
+                    }
+                }).then((res) => {
+                    if (res.code === 200) {
+                        console.log("ask for gallery", res);
+                        const elist = {
+                            id: res.data.elist.id,
+                            viewId: res.data.elist.viewId,
+                            datas: res.data.elist.datas
+                        }
+                        context.commit("saveCurrentViewData", elist)
+                        router.push({
+                            name: view.id
+                        });
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
+                    })
+                });
+            } else if (view.component === "GalleryView") {
+                console.log("askGallery")
+                Axios.get("/gallery/getAllpic", {
+                    params: {
+                        viewId: view.id
+                    }
+                }).then((res) => {
+                    if (res.code === 200) {
+                        console.log("ask for elist", res);
+                        const gallery = {
+                            id: res.data.gallery.id,
+                            viewId: res.data.gallery.viewId,
+                            datas: res.data.gallery.datas
+                        }
+                        context.commit("saveCurrentViewData", gallery)
+                        router.push({
+                            name: view.id
+                        });
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
+                    })
+                });
+
+            }
         },
         addChild(context, view) {
             for (let item in context.state.menuData) {
                 if (context.state.menuData[item].name === view.fname) {
                     console.log(router.getRoutes())
-                    context.commit("saveChild", {index: item, child: view})
-                    router.addRoute(view.fname, {
-                        path: "/space/" + view.fname + "/" + view.id,
-                        name: view.id,
-                        component: () => import(`../components/${view.component}`)
-                    })
-                    console.log(router.getRoutes())
+                    const father = context.state.menuData[item];
                     Axios.post("/view/addView", view).then((res) => {
                         console.log("addView", res)
+                        if (res.code == 200) {
+                            context.commit("saveChild", {index: item, child: view})
+                            router.addRoute(father.id, {
+                                path: "/space/" + father.id + "/" + view.id,
+                                name: view.id,
+                                component: () => import(`../components/${view.component}`)
+                            })
+                        }
                     })
                     break;
                 }
@@ -262,7 +326,7 @@ const NoteStore = {
 //为列表添加item
             // console.log("getElist", vid)
             const tmp = context.state.currentViewData;
-            console.log("addItem", form.index)
+            console.log("addItem", tmp)
             tmp.datas[form.index].items.push({
                 name: form.name,
                 date: form.date,
@@ -389,6 +453,9 @@ const NoteStore = {
         },
         deleteView(context, data) {
             Axios.post("/view/deleteView", data.view).then((res) => {
+                let flag = false;
+                if (data.view.id === context.state.currentView.id)
+                    flag = true;
                 if (res.code === 200) {
                     console.log(res)
                     const tmp = context.state.menuData
@@ -400,11 +467,35 @@ const NoteStore = {
                             context.commit("saveCurrentNote", tmp[n])
                         }
                     }
-                    context.commit("saveCurrentView", new Object())
-                    context.commit("saveCurrentViewData", new Object())
-                    router.push({
-                        name: context.state.currentNote.name + "Profile",
-                    });
+                    //如果删除的是当前的view  进行跳转
+                    if (flag) {
+                        context.commit("saveCurrentView", new Object())
+                        context.commit("saveCurrentViewData", new Object())
+                        router.push({
+                            name: context.state.currentNote.id + "Profile",
+                        });
+                    }
+                } else {
+                    ElNotification({
+                        title: '提示',
+                        message: h('i', {style: 'color: teal'}, res.msg),
+                    })
+                }
+            }).catch(function (error) {
+                console.log(error)
+            })
+        },
+        galleryDeleteOnePic(context, file) {
+            Axios.get("/gallery/deleteOne", {
+                params:{
+                    userId: UserStore.state.user.id,
+                    viewId: context.state.currentView.id,
+                    picName: file.name
+                }
+            }).then((res) => {
+                console.log(res)
+                if (res.code === 200) {
+                    context.commit("saveCurrentViewData", res.data.gallery)
                 } else {
                     ElNotification({
                         title: '提示',
