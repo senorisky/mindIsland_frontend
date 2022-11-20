@@ -55,6 +55,7 @@ import {ElNotification} from "element-plus";
 import UserStore from "../store/index"
 import NoteStore from "../store/index"
 import Axios from "@/utils/request";
+import {nanoid} from "nanoid";
 // import NoteStore from "../store/index"
 
 // const url = ref("http://localhost:8081/gallery/upload")
@@ -150,7 +151,40 @@ const handleExceed = function () {
 
 }
 const handleDownload = function (file) {
-  console.log(file);
+  const uid = UserStore.getters.getUser.id;
+  console.log("downPic", file);
+  Axios.get("/gallery/downSinglePic", {
+    params: {
+      userId: uid,
+      name: file.name,
+    },
+    responseType: 'blob'
+  }).then((res) => {
+    // console.log(res)
+    // 封装 Blob ，创建 下载链接
+    let blob = new Blob([res], {type: 'image/jpeg'});
+    console.log(blob)
+    // 通过创建的blob创建下载的链接
+    const href = window.URL.createObjectURL(blob);
+    console.log(href)
+    // 创建 a 标签
+    const link = document.createElement('a');
+    // 设置a标签参数
+    link.href = href;
+    link.style.display = "none";
+    // 把a标签加入到body中去
+    const tmpName = nanoid(16);
+    link.setAttribute("download", uid + tmpName + ".jpeg"); // 设置文件 name
+    document.body.appendChild(link);
+    // 触发标签的点击事件，直接执行下载
+    link.click();
+    // 下载完成后要移除对应的标签
+    document.body.removeChild(link);
+    // 释放blob对象创建的链接地址
+    window.URL.revokeObjectURL(href);
+  }).catch(function (error) {
+    console.log(error);
+  })
 }
 </script>
 
