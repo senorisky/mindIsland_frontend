@@ -48,6 +48,7 @@ const NoteStore = {
         //{id:,vid:,items:[{colum:,items[{name:},{name:}....]},{colum:,items[]}.....]}  ListData
         //{id:,viewId:,colums:["",""....],datas:[{},{}....{}]}  TableData
         //{id:,viewId:,[{name:,url:},......]}  Gallery
+        //{id:,viewId:,[{name:head:description:time:,resource:}......]}  singleListData
         //PageData[]
     },
     getters: {
@@ -103,7 +104,7 @@ const NoteStore = {
         },
         saveMenuData(state, data) {
             state.menuData = data;
-            localStorage.setItem("menuData", JSON.stringify(data))
+            localStorage.setItem("menuData", JSON.stringify(state.menuData))
             console.log("保存菜单数据", state.menuData)
         },
         saveChild(state, data) {
@@ -487,7 +488,7 @@ const NoteStore = {
         },
         galleryDeleteOnePic(context, file) {
             Axios.get("/gallery/deleteOne", {
-                params:{
+                params: {
                     userId: UserStore.state.user.id,
                     viewId: context.state.currentView.id,
                     picName: file.name

@@ -3,7 +3,7 @@
   <div v-if="noteNotNULL===true">
     <el-scrollbar height="400px">
       <div class="List_container">
-        <div class="list" v-for="(item,index) in listData" :key="index">
+        <div class="list" v-for="(item,index) in listData" :key="index" @click="ToViewDetail(item)">
           <el-input class="child" readonly v-model="item.name"></el-input>
           <el-date-picker
               style="width: 500px"
@@ -13,7 +13,6 @@
               format="YYYY-MM-DD hh:mm:ss"
               value-format="x"
           />
-
         </div>
       </div>
     </el-scrollbar>
@@ -59,7 +58,10 @@ onBeforeMount(() => {
   }
   console.log(noteNotNULL)
 })
-
+const ToViewDetail = function (item) {
+  console.log("profileRouter",item)
+  // router.push()
+}
 const listData = computed({
   get() {
     console.log("Profile")
@@ -90,7 +92,6 @@ li {
 
 .list:hover :deep(.el-input) {
   background: #f5f5f5;
-
 }
 
 .list { //单列表样式

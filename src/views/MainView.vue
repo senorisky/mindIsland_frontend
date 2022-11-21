@@ -181,6 +181,7 @@ onMounted(() => {
     if (noteName !== lastNodeName) {
       localStorage.setItem("currentNote", noteName)
       NoteStore.commit("saveCurrentNoteByName", noteName)
+      NoteStore.commit("saveCurrentView", new Object())
       const nid = NoteStore.getters.getCurrenNote.id
       console.log("当前note", NoteStore.getters.getCurrenNote)
       router.push({
@@ -211,6 +212,24 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .view_drawer_contrainer {
   position: relative;
+
+  :deep( .el-overlay) {
+    background-color: transparent !important;
+    margin-right: 20px;
+  }
+
+  :deep( .el-drawer.rtl ) {
+    height: auto;
+    margin-top: 270px;
+    margin-bottom: 20px;
+  }
+
+  :deep( .el-drawer ) {
+    background-color: #f1f5f7;
+    border-radius: 15px;
+    box-shadow: var(--el-alert-bg-color);
+    width: 30% !important;
+  }
 }
 
 :deep(::-webkit-scrollbar) {
@@ -259,24 +278,6 @@ onUnmounted(() => {
   }
 }
 
-:deep( .el-drawer.rtl ) {
-  height: auto;
-  margin-top: 270px;
-  margin-bottom: 20px;
-
-}
-
-:deep( .el-overlay) {
-  background-color: transparent !important;
-  margin-right: 20px;
-}
-
-:deep( .el-drawer ) {
-  background-color: #f1f5f7;
-  border-radius: 15px;
-  box-shadow: var(--el-alert-bg-color);
-  width: 30% !important;
-}
 
 /* 左侧样式 */
 .menuBar {

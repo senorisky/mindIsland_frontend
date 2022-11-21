@@ -48,7 +48,7 @@
   <div class="view-page">
     <RouterView></RouterView>
   </div>
-  <div class="drawer_contrainer">
+  <div class="note_drawer">
     <!--   添加view的抽屉 -->
     <el-drawer
         v-model="drawer"
@@ -90,7 +90,7 @@
         </el-col>
       </el-row>
     </el-drawer>
-    
+
   </div>
 
 </template>
@@ -127,17 +127,17 @@ const handleDelete = function () {
 const addTable = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  const view_name = "Table"
+  const view_name = ref("Table");
   if (v_name.value !== "") {
     view_name.value = v_name.value;
   }
   const view_id = nanoid(10)
   const table = {
-    name: view_name,
+    name: view_name.value,
     fname: parent_name,
     id: view_id,
     noteId: nid,
-    icon: "iconfont el-icon-dian",
+    icon: "iconfont el-icon-dian1",
     createTime: Date.now(),
     type: "view",
     path: parent_name + "/" + view_id,
@@ -149,18 +149,18 @@ const addTable = function () {
 const addSingleList = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  const view_name = "SList"
+  const view_name = ref("SList")
   if (v_name.value !== "") {
     view_name.value = v_name.value;
   }
   const view_id = nanoid(10);
   const List = {
-    name: view_name,
+    name: view_name.value,
     fname: parent_name,
     noteId: nid,
     createTime: Date.now(),
     id: view_id,
-    icon: "iconfont el-icon-dian",
+    icon: "iconfont el-icon-dian1",
     type: "view",
     path: parent_name + "/" + view_id,
     component: "sListView",
@@ -168,21 +168,22 @@ const addSingleList = function () {
   }
   NoteStore.dispatch("addChild", List)
 }
+
 const addList = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  const view_name = "List"
+  const view_name = ref("List")
   if (v_name.value !== "") {
     view_name.value = v_name.value;
   }
   const view_id = nanoid(10);
   const List = {
-    name: view_name,
+    name: view_name.value,
     fname: parent_name,
     noteId: nid,
     createTime: Date.now(),
     id: view_id,
-    icon: "iconfont el-icon-dian",
+    icon: "iconfont el-icon-dian1",
     type: "view",
     path: parent_name + "/" + view_id,
     component: "ListView",
@@ -193,17 +194,17 @@ const addList = function () {
 const addGallry = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  const view_name = "Gallery"
+  const view_name = ref("Gallery")
   if (v_name.value !== "") {
     view_name.value = v_name.value;
   }
   const view_id = nanoid(10)
   const Gallery = {
-    name: view_name,
+    name: view_name.value,
     fname: parent_name,
     id: view_id,
     noteId: nid,
-    icon: "iconfont el-icon-dian",
+    icon: "iconfont el-icon-dian1",
     createTime: Date.now(),
     type: "view",
     path: parent_name + "/" + view_id,
@@ -307,13 +308,15 @@ onUnmounted(() => {
     }
   }
 }
-
-:deep( .el-drawer ) {
-  background-color: #f1f5f7;
-  border-radius: 15px;
-  box-shadow: var(--el-alert-bg-color);
-  width: 25% !important;
+.note_drawer{
+  :deep( .el-drawer ) {
+    background-color: #f1f5f7;
+    border-radius: 15px;
+    box-shadow: var(--el-alert-bg-color);
+    width: 25% !important;
+  }
 }
+
 
 .button-new-tag {
   --el-button-hover-border-color: #dcdcdc !important;

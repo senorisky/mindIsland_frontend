@@ -1,0 +1,85 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 3734385 */
+  /* Color fonts */
+  src: 
+       url('iconfont.woff2?t=1668992597364') format('woff2'),
+       url('iconfont.woff?t=1668992597364') format('woff'),
+       url('iconfont.ttf?t=1668992597364') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 38px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.el-icon-videoView:before {
+  content: "\e602";
+}
+
+.el-icon-danxiangxuanze:before {
+  content: "\e615";
+}
+
+.el-icon-dian1:before {
+  content: "\e608";
+}
+
+.el-icon-note:before {
+  content: "\e627";
+}
+
+.el-icon-13:before {
+  content: "\e640";
+}
+
+.el-icon-table:before {
+  content: "\e66d";
+}
+
+.el-icon-gallery:before {
+  content: "\e63c";
+}
+
+.el-icon-nav-list:before {
+  content: "\e6fd";
+}
+
+.el-icon-jitui:before {
+  content: "\e64d";
+}
+
+.el-icon-shipin:before {
+  content: "\e6c1";
+}
+
+.el-icon-dushu:before {
+  content: "\e60c";
+}
+
+.el-icon-tuku:before {
+  content: "\e633";
+}
+
+.el-icon-tushu:before {
+  content: "\e600";
+}
+
+.el-icon-home:before {
+  content: "\e601";
+}
+
+.el-icon-feiji:before {
+  content: "\e655";
+}
+
+.el-icon-miao:before {
+  content: "\e61d";
+}
+
+.el-icon-gongzuotai:before {
+  content: "\e6a5";
+}
+

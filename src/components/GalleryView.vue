@@ -81,12 +81,14 @@ const beforeUploadHandle = function (file) {
       title: '提示',
       message: h('i', {style: 'color: teal'}, "不支持此格式"),
     })
+    return  false;
   }
   if (!isLt3M) {
     ElNotification({
       title: '提示',
       message: h('i', {style: 'color: teal'}, "图片大小不能超过5MB"),
     })
+    return false;
   }
   console.log("beforeUpLoad", pictureList.value)
   let len = pictureList.value.length;
