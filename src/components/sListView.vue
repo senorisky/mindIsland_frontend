@@ -69,6 +69,7 @@
         </el-form-item>
         <el-form-item>
           <el-upload
+
               ref="upLoadRef"
               :auto-upload="false"
               drag
@@ -106,7 +107,8 @@
 </template>
 
 <script setup name="sListView">
-import {computed, h, onMounted, reactive, ref, toRaw} from "vue";
+// eslint-disable-next-line no-unused-vars
+import {computed, h, onMounted, reactive, ref} from "vue";
 import NoteStore from "../store/index"
 import {ElNotification} from "element-plus";
 import {
@@ -136,7 +138,7 @@ const ItemData = reactive({
   data: {},
   index: -1
 });
-const upList = ref()
+const upList = ref(undefined)
 const direction = ref('rtl')
 const beforeUploadHandle = function (file) {
   console.log(file.type)
@@ -196,13 +198,14 @@ const ShowItemDw = (index) => {
   form.date = Date.now();
 }
 const submitUpLoad = function (item) {
-  const tmp = toRaw(NoteStore.getters.getCurrentViewData);
-  console.log("addItemWithResource", tmp)
+  const tmp =NoteStore.getters.getCurrentViewData;
+  console.log("submitCard", form)
   tmp.datas[form.index].items.push({
     name: form.name,
     date: form.date,
     des: form.desc,
   })
+  console.log("addItemWithResource", tmp)
   const len = tmp.datas[form.index].items.length;
   const config = {
     headers: {
@@ -215,8 +218,12 @@ const submitUpLoad = function (item) {
   formData.append('elistString', JSON.stringify(tmp))
   formData.append('index', len - 1)
   Axios.post('/elist/upload', formData, config).then(res => {
+    console.log("upCard", res)
     if (res.code === 200) {
       NoteStore.commit("saveCurrentViewData", tmp)
+      form.desc = "";
+      formRef.value.resetFields();
+      drawer1.value = false;
     } else {
       ElNotification({
         title: '提示',
@@ -236,15 +243,14 @@ const addItem = function () {
     })
     return;
   }
-  console.log(upList)
   if (upList.value === undefined || upList.value === 0) {
     NoteStore.dispatch("addItem", form)
+    form.desc = "";
+    formRef.value.resetFields();
+    drawer1.value = false;
   } else {
     upLoadRef.value.submit()
   }
-  form.desc = "";
-  formRef.value.resetFields();
-  drawer1.value = false;
 }
 const loading = computed({
   get() {
@@ -274,10 +280,10 @@ const deleteItem = function (Lindex, index, row) {
   NoteStore.dispatch("deleteListItem", param);
 }
 const ItemDetail = function (index, row) {
+  drawer2.value = true;
   console.log(index, row)
   ItemData.data = row;
   ItemData.index = index;
-  drawer2.value = true;
 }
 </script>
 

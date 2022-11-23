@@ -1,6 +1,6 @@
 <template>
   <div class="inputDeep">
-    <el-input v-model="textc" autosize type="textarea" @blur="saveTextc" placeholder="正文内容"/>
+      <el-input v-model="textc" autosize type="textarea" @blur="saveTextc" placeholder="正文内容"/>
   </div>
 </template>
 

@@ -5,7 +5,7 @@ import Axios from "@/utils/request";
 import qs from "qs";
 import router from "@/router";
 import {ElNotification} from "element-plus";
-import {h} from "vue";
+import {h, toRaw} from "vue";
 
 
 const UserStore = {
@@ -325,15 +325,13 @@ const NoteStore = {
         },
         addItem(context, form) {
 //为列表添加item
-            // console.log("getElist", vid)
-            const tmp = context.state.currentViewData;
+            const tmp = toRaw(context.state.currentViewData);
             console.log("addItem", tmp)
             tmp.datas[form.index].items.push({
                 name: form.name,
                 date: form.date,
                 des: form.desc
             })
-            // console.log("addItem", listData.value[curindex.value])
             Axios.post("/elist/saveEList", tmp).then((res) => {
                 if (res.code === 200) {
                     console.log(res);
