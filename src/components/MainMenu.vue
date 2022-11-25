@@ -23,7 +23,6 @@
         </template>
       </el-menu-item>
       <div v-if="catchDeep(item.type)" style="height: 7px;width: 180px;background: #f5f5f5">
-
       </div>
     </template>
   </div>

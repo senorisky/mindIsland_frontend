@@ -108,7 +108,7 @@
 
 <script setup name="sListView">
 // eslint-disable-next-line no-unused-vars
-import {computed, h, onMounted, reactive, ref} from "vue";
+import {computed, h, onMounted, reactive, ref, toRaw} from "vue";
 import NoteStore from "../store/index"
 import {ElNotification} from "element-plus";
 import {
@@ -198,15 +198,16 @@ const ShowItemDw = (index) => {
   form.date = Date.now();
 }
 const submitUpLoad = function (item) {
-  const tmp =NoteStore.getters.getCurrentViewData;
+  const tmp = NoteStore.getters.getCurrentViewData;
   console.log("submitCard", form)
-  tmp.datas[form.index].items.push({
+  const t = toRaw(tmp)
+  t.datas[form.index].items.push({
     name: form.name,
     date: form.date,
     des: form.desc,
   })
-  console.log("addItemWithResource", tmp)
-  const len = tmp.datas[form.index].items.length;
+  console.log("addItemWithResource", t)
+  const len = t.datas[form.index].items.length;
   const config = {
     headers: {
       'Content-Type': 'multipart/form-data'
@@ -215,12 +216,12 @@ const submitUpLoad = function (item) {
   let formData = new FormData()
   formData.append("file", item.file);
   formData.append('userId', UserStore.getters.getUser.id)
-  formData.append('elistString', JSON.stringify(tmp))
+  formData.append('elistString', JSON.stringify(t))
   formData.append('index', len - 1)
   Axios.post('/elist/upload', formData, config).then(res => {
     console.log("upCard", res)
     if (res.code === 200) {
-      NoteStore.commit("saveCurrentViewData", tmp)
+      NoteStore.commit("saveCurrentViewData", res.data.elist)
       form.desc = "";
       formRef.value.resetFields();
       drawer1.value = false;
@@ -244,6 +245,7 @@ const addItem = function () {
     return;
   }
   if (upList.value === undefined || upList.value === 0) {
+    //没有资源的上传
     NoteStore.dispatch("addItem", form)
     form.desc = "";
     formRef.value.resetFields();

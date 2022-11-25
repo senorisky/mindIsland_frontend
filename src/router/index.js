@@ -1,14 +1,8 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import MainView from "@/views/MainView";
 import PrepareView from "@/views/PrepareView";
-// eslint-disable-next-line no-unused-vars
-import GalleryView from "../components/GalleryView";
-// eslint-disable-next-line no-unused-vars
-import TableView from "../components/TableView"
-// eslint-disable-next-line no-unused-vars
-import ListView from "@/components/ListView";
 import ProFile from "@/components/ProFile";
-// import store from "@/store";
+import PersonSet from "@/components/PersonSet";
 import UserStore from "../store/index.js"
 import NoteStore from "@/store";
 import PageStore from "@/store";
@@ -26,6 +20,10 @@ const routes = [
                 path: 'ProFile',
                 name: 'ProFile',
                 component: ProFile
+            }, {
+                path: "personSet",
+                name: "personSet",
+                component: PersonSet
             }
         ]
     }

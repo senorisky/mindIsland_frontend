@@ -13,7 +13,7 @@
       </div>
       <!-- el-sub-menu和el-menu-item 可能会有多层嵌套，所以抽取出来封装成递归组件-->
       <el-menu unique-opened>
-        <el-menu-item>
+        <el-menu-item @click="ToPersonSet">
           <template #title>
             <el-icon>
               <setting></setting>
@@ -174,35 +174,40 @@ const addNote = function () {
   formRef.value.resetFields();
   drawer1.value = false;
 }
+const MenuRouter = function (noteName) {
+  const lastNodeName = NoteStore.getters.getCurrenNote.name;
+  if (noteName !== lastNodeName) {
+    localStorage.setItem("currentNote", noteName)
+    NoteStore.commit("saveCurrentNoteByName", noteName)
+    NoteStore.commit("saveCurrentView", new Object())
+    const nid = NoteStore.getters.getCurrenNote.id
+    console.log("当前note", NoteStore.getters.getCurrenNote)
+    router.push({
+      name: nid + "Profile",
+    });
+  }
+}
+const PageRouter = function (pageName) {
+  const lastNodeName = NoteStore.getters.getCurrenNote.name;
+  // console.log("lastNode", lastNodeName)
+  if (pageName !== lastNodeName) {
+    localStorage.setItem("currentNote", pageName)
+    NoteStore.commit("saveCurrentNoteByName", pageName)
+    const pid = NoteStore.getters.getCurrenNote.id
+    PageStore.dispatch("askPage", NoteStore.getters.getCurrenNote.id)
+    console.log("当前note", NoteStore.getters.getCurrenNote)
+    router.push({
+      name: pid,
+    });
+  }
+}
+const ToPersonSet = function () {
+  router.push({path: "/space/PersonSet"})
+}
 onMounted(() => {
   //只点击带孩子的note进行的路由跳转
-  Mitt.on("MenuRouter", (noteName) => {
-    const lastNodeName = NoteStore.getters.getCurrenNote.name;
-    if (noteName !== lastNodeName) {
-      localStorage.setItem("currentNote", noteName)
-      NoteStore.commit("saveCurrentNoteByName", noteName)
-      NoteStore.commit("saveCurrentView", new Object())
-      const nid = NoteStore.getters.getCurrenNote.id
-      console.log("当前note", NoteStore.getters.getCurrenNote)
-      router.push({
-        name: nid + "Profile",
-      });
-    }
-  })
-  Mitt.on("PageRouter", (pageName) => {
-    const lastNodeName = NoteStore.getters.getCurrenNote.name;
-    // console.log("lastNode", lastNodeName)
-    if (pageName !== lastNodeName) {
-      localStorage.setItem("currentNote", pageName)
-      NoteStore.commit("saveCurrentNoteByName", pageName)
-      const pid = NoteStore.getters.getCurrenNote.id
-      PageStore.dispatch("askPage", NoteStore.getters.getCurrenNote.id)
-      console.log("当前note", NoteStore.getters.getCurrenNote)
-      router.push({
-        name: pid,
-      });
-    }
-  })
+  Mitt.on("MenuRouter", MenuRouter)
+  Mitt.on("PageRouter", PageRouter)
 })
 onUnmounted(() => {
   Mitt.off("MenuRouter")

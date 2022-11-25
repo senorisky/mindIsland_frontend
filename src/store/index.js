@@ -13,7 +13,9 @@ const UserStore = {
         user: {
             name: null,
             email: "",
-            id: ""
+            id: "",
+            header: "",
+            desc: ""
         },
         token: String
     },
@@ -31,6 +33,8 @@ const UserStore = {
             state.user.name = user.userName;
             state.user.email = user.email
             state.user.id = user.userId
+            state.user.header = user.avatar
+            state.user.desc = user.des
             console.log("userstore", state.user)
         },
         saveToken(state, token) {
@@ -325,17 +329,26 @@ const NoteStore = {
         },
         addItem(context, form) {
 //为列表添加item
-            const tmp = toRaw(context.state.currentViewData);
+            const tmp = context.state.currentViewData;
             console.log("addItem", tmp)
-            tmp.datas[form.index].items.push({
+            const t = toRaw(tmp)
+            t.datas[form.index].items.push({
                 name: form.name,
                 date: form.date,
                 des: form.desc
             })
-            Axios.post("/elist/saveEList", tmp).then((res) => {
+            Axios.post("/elist/saveEList", {
+                elist: tmp,
+                url: ""
+            }).then((res) => {
                 if (res.code === 200) {
                     console.log(res);
-                    context.commit("saveCurrentViewData", tmp)
+                    const elist = {
+                        id: res.data.elist.id,
+                        viewId: res.data.elist.viewId,
+                        datas: res.data.elist.datas
+                    }
+                    context.commit("saveCurrentViewData", elist)
                 }
                 ElNotification({
                     title: '提示',
@@ -369,7 +382,6 @@ const NoteStore = {
         },
         deleteList(context, index) {
             const tmp = context.state.currentViewData;
-
             tmp.datas.splice(index, 1);
             console.log("deleteL", tmp.datas, index)
             Axios.post("/elist/saveEList", tmp).then((res) => {
@@ -392,12 +404,30 @@ const NoteStore = {
             const l = param.Lindex;
             const index = param.index;
             const tmp = context.state.currentViewData;
-            tmp.datas[l].items.splice(index, 1);
+            const t = toRaw(tmp)
+            let url = "";
+            let poster = "";
+            if (t.datas[l].items[index].url !== undefined) {
+                url = t.datas[l].items[index].url;
+            }
+            if (t.datas[l].items[index].poster !== undefined) {
+                poster = t.datas[l].items[index].poster;
+            }
             // console.log("deleteListItem", tmp, index)
-            Axios.post("/elist/saveEList", tmp).then((res) => {
+            t.datas[l].items.splice(index, 1);
+            Axios.post("/elist/saveEList", {
+                elist: t,
+                url,
+                poster
+            }).then((res) => {
                 if (res.code === 200) {
-                    // console.log("listAddColum", res);
-                    context.commit("saveCurrentViewData", tmp);
+                    console.log("deleteListItem", res);
+                    const elist = {
+                        id: res.data.elist.id,
+                        viewId: res.data.elist.viewId,
+                        datas: res.data.elist.datas
+                    }
+                    context.commit("saveCurrentViewData", elist);
                 } else {
                     ElNotification({
                         title: '提示',
