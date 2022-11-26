@@ -3,6 +3,7 @@
     <!--侧边主菜单-->
     <div>
       <div style="margin-bottom: 6px">
+        <p>{{ UserStore.getters.getUser.name }}</p>
         <el-input v-model="searchInput" class="w-50 m-2" placeholder="search">
           <template #prefix>
             <el-icon class="el-input__icon">
@@ -98,6 +99,7 @@ import UserStore from "../store/index"
 import PageStore from "../store/index"
 import {ElNotification} from "element-plus";
 import {nanoid} from "nanoid";
+import Axios from "@/utils/request";
 //获得dom元素原型  ref绑定
 const formRef = ref(null)
 const form = reactive({
@@ -194,7 +196,19 @@ const PageRouter = function (pageName) {
     localStorage.setItem("currentNote", pageName)
     NoteStore.commit("saveCurrentNoteByName", pageName)
     const pid = NoteStore.getters.getCurrenNote.id
-    PageStore.dispatch("askPage", NoteStore.getters.getCurrenNote.id)
+    console.log("askPage", pid)
+    //axios 请求page内容
+    Axios.get("/page/getPageData", {
+      params: {
+        noteId: pid
+      }
+    }).then((res) => {
+      console.log("askPage", res)
+      if (res.code === 200) {
+        console.log("askPageDat", res.data)
+        PageStore.commit("savePageData", res.data.page)
+      }
+    })
     console.log("当前note", NoteStore.getters.getCurrenNote)
     router.push({
       name: pid,
@@ -211,6 +225,7 @@ onMounted(() => {
 })
 onUnmounted(() => {
   Mitt.off("MenuRouter")
+  Mitt.off("PageRouter")
 })
 </script>
 

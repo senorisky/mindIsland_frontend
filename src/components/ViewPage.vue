@@ -41,6 +41,7 @@ import HeadThree from "@/components/HeadThree";
 import TextArea from "@/components/TextArea";
 import PageStore from "../store/index"
 import NoteStore from "../store/index"
+import Axios from "@/utils/request";
 
 export default {
   components: {
@@ -62,16 +63,24 @@ export default {
         text: "",
         pageId: NoteStore.getters.getCurrenNote.id
       }
-      PageStore.dispatch("addH1", h1)
+      Axios.post("/page/addPageContent", h1).then((res) => {
+        if (res.code === 200) {
+          PageStore.commit("addH1", h1)
+        }
+      })
+      //axios 成功后commit
     }
     const addH2 = function () {
       const h2 = {
         name: "HeadTwo",
         text: "",
         pageId: NoteStore.getters.getCurrenNote.id
-
       }
-      PageStore.dispatch("addH2", h2)
+      Axios.post("/page/addPageContent", h2).then((res) => {
+        if (res.code === 200) {
+          PageStore.commit("addH2", h2)
+        }
+      })
     }
     const pageName = computed({
       get() {
@@ -90,7 +99,11 @@ export default {
         pageId: NoteStore.getters.getCurrenNote.id
 
       }
-      PageStore.dispatch("addH3", h3)
+      Axios.post("/page/addPageContent", h3).then((res) => {
+        if (res.code === 200) {
+          PageStore.commit("addH3", h3)
+        }
+      })
     }
     const addTextArea = function () {
       const text = {
@@ -98,7 +111,12 @@ export default {
         text: "",
         pageId: NoteStore.getters.getCurrenNote.id
       }
-      PageStore.dispatch("addTextArea", text)
+      Axios.post("/page/addPageContent", text).then((res) => {
+        console.log("addPageContent", res)
+        if (res.code === 200) {
+          PageStore.commit("addTextArea", text)
+        }
+      })
     }
     const pageData = computed({
       get() {

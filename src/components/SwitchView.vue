@@ -3,22 +3,22 @@
 
     <div class="switch__circle"></div>
     <div class="switch__circle switch__circle--t"></div>
-    <div class="switch__container" id="switch-c1">
-      <h2 class="switch__title title">Welcome Back !</h2>
-      <p class="switch__description description">To keep connected with us please login with your personal info</p>
-      <button class="switch__button button switch-btn" @click="change()">SIGN IN</button>
-    </div>
     <div class="switch__container is-hidden" id="switch-c2">
       <h2 class="switch__title title">Hello Friend !</h2>
       <p class="switch__description description">Enter your personal details and start journey with us</p>
       <button class="switch__button button switch-btn" @click="change()">SIGN UP</button>
+    </div>
+    <div class="switch__container" id="switch-c1">
+      <h2 class="switch__title title">Welcome Back !</h2>
+      <p class="switch__description description">To keep connected with us please login with your personal info</p>
+      <button class="switch__button button switch-btn" @click="change()">SIGN IN</button>
     </div>
   </div>
 </template>
 
 <script setup>
 
-import {ref} from "vue";
+import {onUnmounted, ref} from "vue";
 import Mitt from "@/EventBus/mitt";
 
 let switchCtn = document.querySelector("#switch-cnt");
@@ -76,7 +76,15 @@ const change = () => {
   sidebarOpen.value = !sidebarOpen.value
   Mitt.emit('change', sidebarOpen.value)
 }
-
+onUnmounted(() => {
+      let i = 0;
+      for (i = 0; i < allButtons.length; i++)
+        allButtons[i].removeEventListener("click", getButtons);
+      for (i = 0; i < switchBtn.length; i++)
+        switchBtn[i].removeEventListener("click", changeForm)
+      window.removeEventListener("load", mainF)
+    }
+)
 </script>
 
 <style scoped lang="scss">

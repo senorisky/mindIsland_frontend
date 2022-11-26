@@ -23,8 +23,8 @@
                       :src="data.url"
                       :poster="data.poster"
                       crossorigin="anonymous"
-                      playsinline
-                      controls
+                      playsinline="true"
+                      controls="true"
                       :volume="0.6"
                       :height="223"
                       :playback-rates="[0.7, 1.0, 1.5, 2.0]"
@@ -47,6 +47,8 @@
 <script setup>
 
 import {computed, onMounted, ref, shallowRef} from 'vue'
+import {VideoPlayer} from '@videojs-player/vue'
+import 'video.js/dist/video-js.css'
 import Mitt from "@/EventBus/mitt";
 // eslint-disable-next-line no-undef
 const props = defineProps({

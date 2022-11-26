@@ -5,7 +5,7 @@
                   element-loading-text="Loading this maybe cast seconds..."
                   style="height:350px;margin-bottom: 20px; overflow-y: hidden">
       <div class="todoList_container">
-        <div :class='small?"lists":"list"' v-for="(item,index) in listData" :key="index">
+        <div :class='small?"lists":"list"' v-for="(item,index) in listData.value" :key="index">
           <el-table :data="item.items" max-height="300px"
                     :cell-style="ItemStyle" stripe>
             <el-table-column class="list_tittle" prop="name" :label="item.colum"/>
@@ -24,7 +24,7 @@
                 <el-button
                     size="small"
                     :icon="Delete"
-                    @click="deleteItem(index,scope.$index, scope.row)"
+                    @click="deleteItem(index,scope.$index)"
                 />
               </template>
             </el-table-column>
@@ -115,6 +115,7 @@ import {
   Delete,
   Edit,
 } from '@element-plus/icons-vue'
+import Axios from "@/utils/request";
 
 const centerDialogVisible = ref(false)
 const columIndex = ref();
@@ -172,12 +173,38 @@ const addItem = function () {
     })
     return;
   }
-  NoteStore.dispatch("addItem", form)
+  const tmp = {
+    id: listInfo.id,
+    viewId: listInfo.viewId,
+    datas: listData.value
+  }
+  console.log("addItem", tmp)
+  tmp.datas[form.index].items.push({
+    name: form.name,
+    date: form.date,
+    des: form.desc
+  })
+  Axios.post("/elist/saveEList", {
+    elist: tmp,
+    url: ""
+  }).then((res) => {
+    if (res.code === 200) {
+      console.log(res);
+      listData.value = res.data.elist.datas;
+    }
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, res.msg),
+    })
+
+  }).catch(function (error) {
+    console.log(error);
+    // alert('系统繁忙请联系管理员');
+  });
   formRef.value.resetFields();
   drawer1.value = false;
 }
 const addListColum = function () {
-
   if (newColum.value === null) {
     ElNotification({
       title: '提示',
@@ -189,45 +216,140 @@ const addListColum = function () {
     colum: newColum,
     items: []
   }
-  NoteStore.dispatch("addListColum", list);
-
+  const tmp = {
+    id: listInfo.id,
+    viewId: listInfo.viewId,
+    datas: listData.value
+  }
+  console.log("addlistColum", tmp)
+  tmp.datas.push(list);
+  Axios.post("/elist/saveEList", {elist: tmp, url: ""}).then((res) => {
+    if (res.code === 200) {
+      console.log("listAddColum", res);
+      listData.value = res.data.elist.datas;
+    } else {
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, '添加失败'),
+      })
+      return;
+    }
+  }).catch(function (error) {
+    console.log(error);
+    // alert('系统繁忙请联系管理员');
+  });
   drawer2.value = false;
 }
 const loading = computed({
   get() {
-    return NoteStore.getters.getCurrentViewData.datas !== undefined;
+    return listData.value !== undefined;
   }
 })
-const listData = computed({
-  get() {
-    return NoteStore.getters.getCurrentViewData.datas;
-  }
+const listData = reactive({})
+// eslint-disable-next-line no-unused-vars
+const listInfo = reactive({
+  id: "",
+  viewId: ""
 })
 onMounted(() => {
-  console.log("listview mounted")
+  console.log("listview mounted", listData)
   if (listData.value === undefined) {
-    NoteStore.dispatch("askViewData")
+    const vid = NoteStore.getters.getCurrentView.id;
+    console.log("getElist", NoteStore.getters.getCurrentView)
+    Axios.get("/elist/getEList", {
+      params: {
+        viewId: vid
+      }
+    }).then((res) => {
+      if (res.code === 200) {
+        console.log("ask for list", res);
+        const elist = {
+          id: res.data.elist.id,
+          viewId: res.data.elist.viewId,
+          datas: res.data.elist.datas
+        }
+        listData.value = elist.datas;
+        listInfo.id = elist.id;
+        listInfo.viewId = elist.viewId;
+        console.log("ok", listData)
+      }
+    }).catch(function (error) {
+      console.log(error);
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
+      })
+    });
   }
 })
 //index是下标位置，row是一个Proxy
 const deletList = function (index) {
   centerDialogVisible.value = false;
   // console.log("deleteList", index)
-  NoteStore.dispatch("deleteList", index)
-}
-const deleteItem = function (Lindex, index, row) {
-  // console.log("deleteItem", Lindex, index, row)
-  const param = {
-    Lindex,
-    index, row
+  const tmp = {
+    id: listInfo.id,
+    viewId: listInfo.viewId,
+    datas: listData.value
   }
-  NoteStore.dispatch("deleteListItem", param);
+  tmp.datas.splice(index, 1);
+  console.log("deleteL", tmp.datas, index)
+  Axios.post("/elist/saveEList", {elist: tmp, url: ""}).then((res) => {
+    if (res.code === 200) {
+      console.log("listAddColum", res);
+      listData.value = res.data.elist.datas;
+    } else {
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, '删除失败'),
+      })
+      return;
+    }
+  }).catch(function (error) {
+    console.log(error);
+    // alert('系统繁忙请联系管理员');
+  });
+}
+const deleteItem = function (Lindex, index) {
+  // console.log("deleteItem", Lindex, index, row)
+  const l = Lindex;
+  const tmp = {
+    id: listInfo.id,
+    viewId: listInfo.viewId,
+    datas: listData.value
+  }
+  let url = "";
+  let poster = "";
+  if (tmp.datas[l].items[index].url !== undefined) {
+    url = tmp.datas[l].items[index].url;
+  }
+  if (tmp.datas[l].items[index].poster !== undefined) {
+    poster = tmp.datas[l].items[index].poster;
+  }
+  // console.log("deleteListItem", tmp, index)
+  tmp.datas[l].items.splice(index, 1);
+  Axios.post("/elist/saveEList", {
+    elist: tmp,
+    url,
+    poster
+  }).then((res) => {
+    if (res.code === 200) {
+      console.log("deleteListItem", res);
+      listData.value = res.data.elist.datas;
+    } else {
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, '删除失败'),
+      })
+      return;
+    }
+  }).catch(function (error) {
+    console.log(error);
+    // alert('系统繁忙请联系管理员');
+  });
 }
 const ItemDetail = function () {
 
 }
-
-
 const ShowItemDw = (index) => {
   drawer1.value = true;
   form.index = index

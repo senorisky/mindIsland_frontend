@@ -46,7 +46,7 @@
     </template>
   </el-dialog>
   <div class="view-page">
-    <RouterView></RouterView>
+    <RouterView ></RouterView>
   </div>
   <div class="note_drawer">
     <!--   添加view的抽屉 -->
@@ -90,7 +90,6 @@
         </el-col>
       </el-row>
     </el-drawer>
-
   </div>
 
 </template>
@@ -101,6 +100,7 @@ import Mitt from "@/EventBus/mitt";
 import NoteStore from "@/store";
 import {nanoid} from "nanoid"
 import {formatTime} from "@/utils/formatTime";
+import router from "@/router";
 
 const v_name = ref("");
 const centerDialogVisible = ref(false)
@@ -168,7 +168,6 @@ const addSingleList = function () {
   }
   NoteStore.dispatch("addChild", List)
 }
-
 const addList = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
@@ -222,8 +221,10 @@ const Viewdetail = function (tag) {
     console.log(tag.type, vid)
     NoteStore.commit("saveCurrentViewData", new Object())
     NoteStore.commit("saveCurrentViewById", vid);
-    NoteStore.dispatch("askViewData")
     console.log("点击NoteView了")
+    router.push({
+      name: vid
+    })
   }
 }
 const noteName = computed({
@@ -233,14 +234,12 @@ const noteName = computed({
     NoteStore.dispatch("changeNoteName", value)
   }
 })
-
 const noteTime = computed({
-      get() {
-        const timeStamp = NoteStore.getters.getCurrenNote.createTime;
-        return formatTime(timeStamp);
-      }
-    }
-)
+  get() {
+    const timeStamp = NoteStore.getters.getCurrenNote.createTime;
+    return formatTime(timeStamp);
+  }
+})
 const noteInfo = computed({
   get() {
     return NoteStore.getters.getCurrenNote.info;
@@ -253,19 +252,19 @@ const noteInfo = computed({
 onMounted(() => {
 //点击note的view
   Mitt.on("ViewRouter", (item) => {
-        //数据
-        const vid = item.id
-        const lastView = NoteStore.getters.getCurrentView;
-        console.log("lastview", lastView)
-        if ((lastView === null) || (item.id !== lastView.id)) {
-          console.log(item.type, vid)
-          NoteStore.commit("saveCurrentViewData", new Object());
-          NoteStore.commit("saveCurrentViewById", vid);
-          NoteStore.dispatch("askViewData")
-          console.log("点击NoteView了")
-        }
-      }
-  )
+    //数据
+    const vid = item.id
+    const lastView = NoteStore.getters.getCurrentView;
+    console.log("lastview", lastView)
+    if ((lastView === null) || (item.id !== lastView.id)) {
+      console.log(item.type, vid)
+      NoteStore.commit("saveCurrentViewById", vid);
+      console.log("点击NoteView了")
+      router.push({
+        name: vid
+      });
+    }
+  })
 })
 onUnmounted(() => {
   Mitt.off("ViewRouter")
@@ -310,7 +309,8 @@ onUnmounted(() => {
     }
   }
 }
-.note_drawer{
+
+.note_drawer {
   :deep( .el-drawer ) {
     background-color: #f1f5f7;
     border-radius: 15px;

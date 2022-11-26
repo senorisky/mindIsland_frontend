@@ -1,6 +1,7 @@
 <template>
   <div class="inputDeep">
-      <el-input v-model="textc" autosize type="textarea" @blur="saveTextc" placeholder="正文内容"/>
+    <el-input v-model="textc" autosize type="textarea" @keydown.delete="deletePageComponent" @blur="saveTextc"
+              placeholder="正文内容"/>
   </div>
 </template>
 
@@ -14,9 +15,18 @@ const props = defineProps({
 })
 // eslint-disable-next-line vue/no-setup-props-destructure
 const index = props.id
+const deletePageComponent = function () {
+  if (textc.value === "" || textc.value === undefined) {
+    console.log("textc empty")
+    PageStore.dispatch("deletePageItems", index)
+  }
+}
 let textc = computed(
     {
       get() {
+        if (index >= PageStore.getters.getComponentsArr.length) {
+          return "";
+        }
         return PageStore.getters.getComponentsArr[index].text
       },
       set(value) {
@@ -33,7 +43,11 @@ const saveTextc = function () {
     text: textc.value,
     index
   }
-  PageStore.dispatch("saveCContent", data);
+
+  if (index < PageStore.getters.getComponentsArr.length) {
+    console.log("提交内容text", index)
+    PageStore.dispatch("saveCContent", data);
+  }
 }
 </script>
 

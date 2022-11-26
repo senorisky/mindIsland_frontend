@@ -1,7 +1,8 @@
 <template>
   <!-- 一级标题-->
   <div>
-    <el-input v-model="h1" class="deepInput" @blur="saveH1" type="text" placeholder="一级标题">
+    <el-input v-model="h1" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH1" type="text"
+              placeholder="一级标题">
     </el-input>
   </div>
 </template>
@@ -15,11 +16,19 @@ const props = defineProps({
 })
 // eslint-disable-next-line vue/no-setup-props-destructure
 const index = props.id
-// console.log(PageStore.getters.getComponentsArr)
-// console.log(PageStore.getters.getComponentsArr[index])
-// const h1 = ref(PageStore.getters.getComponentsArr[index].text)
+const deletePageComponent = function () {
+  if (h1.value === "" || h1.value === undefined) {
+    console.log("h1 empty")
+    PageStore.dispatch("deletePageItems", index)
+  }
+}
+
 const h1 = computed({
       get() {
+        if (index >= PageStore.getters.getComponentsArr.length) {
+          return "";
+        }
+        console.log("h1content", PageStore.getters.getComponentsArr[index].text)
         return PageStore.getters.getComponentsArr[index].text
       },
       set(value) {
@@ -38,14 +47,14 @@ const saveH1 = function () {
     text: h1.value,
     index
   }
-  PageStore.dispatch("saveCContent", h1t)
+  if (index < PageStore.getters.getComponentsArr.length)
+    PageStore.dispatch("saveCContent", h1t)
 }
 onMounted(() => {
   console.log("index", index)
   h1.value = PageStore.getters.getComponentsArr[index].text
   console.log("h1", PageStore.getters.getComponentsArr[index])
 })
-
 </script>
 
 <style lang="scss" scoped>

@@ -1,7 +1,7 @@
 <template>
   <!--  三级标题  -->
   <div>
-    <el-input v-model="h3" class="deepInput" @blur="saveH3" placeholder="三级标题">
+    <el-input v-model="h3" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH3" placeholder="三级标题">
     </el-input>
   </div>
 </template>
@@ -15,8 +15,18 @@ const props = defineProps({
   id: Number
 })// eslint-disable-next-line vue/no-setup-props-destructure
 const index = props.id
+const deletePageComponent = function () {
+  if (h3.value === "" || h3.value === undefined) {
+    console.log("h3 empty")
+    PageStore.dispatch("deletePageItems", index)
+  }
+
+}
 const h3 = computed({
       get() {
+        if (index >= PageStore.getters.getComponentsArr.length) {
+          return "";
+        }
         return PageStore.getters.getComponentsArr[index].text
       }
       ,
@@ -34,7 +44,8 @@ const saveH3 = function () {
     text: h3.value,
     index
   }
-  PageStore.dispatch("saveCContent", h3t)
+  if (index < PageStore.getters.getComponentsArr.length)
+    PageStore.dispatch("saveCContent", h3t)
 }
 
 </script>

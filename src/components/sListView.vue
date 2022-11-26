@@ -108,7 +108,7 @@
 
 <script setup name="sListView">
 // eslint-disable-next-line no-unused-vars
-import {computed, h, onMounted, reactive, ref, toRaw} from "vue";
+import {computed, h, onBeforeUnmount, onMounted, onUnmounted, reactive, ref, toRaw} from "vue";
 import NoteStore from "../store/index"
 import {ElNotification} from "element-plus";
 import {
@@ -270,7 +270,29 @@ onMounted(() => {
   })
   console.log("listview mounted")
   if (listData.value === undefined) {
-    NoteStore.dispatch("askViewData")
+    const vid = NoteStore.getters.getCurrentView.id;
+    console.log("getElist", NoteStore.getters.getCurrentView)
+    Axios.get("/elist/getEList", {
+      params: {
+        viewId: vid
+      }
+    }).then((res) => {
+      if (res.code === 200) {
+        console.log("ask for gallery", res);
+        const elist = {
+          id: res.data.elist.id,
+          viewId: res.data.elist.viewId,
+          datas: res.data.elist.datas
+        }
+        NoteStore.commit("saveCurrentViewData", elist)
+      }
+    }).catch(function (error) {
+      console.log(error);
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
+      })
+    });
   }
 })
 const deleteItem = function (Lindex, index, row) {
@@ -287,6 +309,9 @@ const ItemDetail = function (index, row) {
   ItemData.data = row;
   ItemData.index = index;
 }
+onUnmounted(function () {
+  Mitt.off("CloseCardView");
+})
 </script>
 
 <style lang="scss" scoped>

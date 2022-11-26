@@ -84,9 +84,11 @@
 </template>
 
 <script setup>
-import {computed, onMounted, reactive, ref} from "vue";
+import {computed, h, onMounted, reactive, ref} from "vue";
 import NoteStore from "../store/index"
 import {Delete} from "@element-plus/icons-vue";
+import Axios from "@/utils/request";
+import {ElNotification} from "element-plus";
 
 const centerDialogVisible = ref(false)
 const columIndex = ref();
@@ -144,7 +146,24 @@ const addTableItem = function () {
 
 onMounted(() => {
   if (tableData.value === undefined) {
-    NoteStore.dispatch("askViewData")
+    const vid = NoteStore.getters.getCurrentView.id;
+    console.log("askTableData", vid)
+    Axios.get("/etable/getTable", {
+      params: {
+        viewId: vid
+      }
+    }).then((res) => {
+      if (res.code === 200) {
+        console.log("读取tabledata成功", res)
+        NoteStore.commit("saveCurrentViewData", res.data.etable)
+      }
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, res.msg),
+      })
+    }).catch(function (error) {
+      console.log("读取tabledata出错", error)
+    })
   }
 })
 </script>

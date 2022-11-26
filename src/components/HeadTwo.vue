@@ -1,7 +1,7 @@
 <template>
   <!--  二级标题  -->
   <div>
-    <el-input v-model="h2" class="deepInput" @blur="saveH2" placeholder="二级标题">
+    <el-input v-model="h2" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH2" placeholder="二级标题">
     </el-input>
   </div>
 </template>
@@ -14,10 +14,19 @@ import PageStore from "@/store";
 const props = defineProps({
   id: Number
 })
+const deletePageComponent = function () {
+  if (h2.value === "" || h2.value === undefined) {
+    console.log("h2 empty")
+    PageStore.dispatch("deletePageItems", index)
+  }
+}
 // eslint-disable-next-line vue/no-setup-props-destructure
 const index = props.id
 const h2 = computed({
   get() {
+    if (index >= PageStore.getters.getComponentsArr.length) {
+      return "";
+    }
     return PageStore.getters.getComponentsArr[index].text
   },
   set(value) {
@@ -33,7 +42,8 @@ const saveH2 = function () {
     text: h2.value,
     index
   }
-  PageStore.dispatch("saveCContent", h2t)
+  if (index < PageStore.getters.getComponentsArr.length)
+    PageStore.dispatch("saveCContent", h2t)
 }
 </script>
 

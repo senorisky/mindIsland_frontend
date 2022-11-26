@@ -37,6 +37,7 @@ import {onMounted, reactive} from "vue";
 import Mitt from "@/EventBus/mitt";
 import router from "@/router";
 import NoteStore from "../store/index";
+
 // eslint-disable-next-line no-unused-vars
 const showNote = function (item) {
   console.log("点击Note, children")

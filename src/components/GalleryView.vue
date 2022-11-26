@@ -81,7 +81,7 @@ const beforeUploadHandle = function (file) {
       title: '提示',
       message: h('i', {style: 'color: teal'}, "不支持此格式"),
     })
-    return  false;
+    return false;
   }
   if (!isLt3M) {
     ElNotification({
@@ -111,7 +111,29 @@ const data = reactive({
 onMounted(() => {
   console.log("listview mounted")
   if (pictureList.value === undefined) {
-    NoteStore.dispatch("askViewData")
+    const vid = NoteStore.getters.getCurrentView.id;
+    console.log("askGallery")
+    Axios.get("/gallery/getAllpic", {
+      params: {
+        viewId: vid
+      }
+    }).then((res) => {
+      if (res.code === 200) {
+        console.log("ask for elist", res);
+        const gallery = {
+          id: res.data.gallery.id,
+          viewId: res.data.gallery.viewId,
+          datas: res.data.gallery.datas
+        }
+        NoteStore.commit("saveCurrentViewData", gallery)
+      }
+    }).catch(function (error) {
+      console.log(error);
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
+      })
+    });
   }
 })
 const UpLoadOnePic = function (item) {
