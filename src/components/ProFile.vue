@@ -73,7 +73,7 @@ const listData = computed({
 <style lang="scss" scoped>
 .block {
   display: flex;
-  font-family: "HGHUATI_CNKI";
+  font-family: "HGHUATI_CNKI",serif;
 }
 
 li {

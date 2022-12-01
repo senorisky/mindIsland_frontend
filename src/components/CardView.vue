@@ -47,8 +47,7 @@
 <script setup>
 
 import {computed, onMounted, ref, shallowRef} from 'vue'
-import {VideoPlayer} from '@videojs-player/vue'
-import 'video.js/dist/video-js.css'
+import { VideoPlayer } from '@videojs-player/vue'
 import Mitt from "@/EventBus/mitt";
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -66,8 +65,7 @@ const data = computed({
     console.log("card_data_change", value);
   }
 })
-const isVisible = computed(
-    {
+const isVisible = computed({
       get() {
         return props.drawer;
       }

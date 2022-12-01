@@ -1,53 +1,38 @@
 <template>
   <div class="inputDeep">
-    <el-input v-model="textc" autosize type="textarea" @keydown.delete="deletePageComponent" @blur="saveTextc"
+    <el-input v-model="textc.data" autosize type="textarea" @keydown.delete="deletePageComponent" @blur="saveTextc"
               placeholder="正文内容"/>
   </div>
 </template>
 
 <script setup name="TextArea">
-import {computed} from "vue";
-import PageStore from "@/store";
+import {reactive} from "vue";
+import Mitt from "@/EventBus/mitt";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
+  data: Object,
   id: Number
 })
 // eslint-disable-next-line vue/no-setup-props-destructure
 const index = props.id
 const deletePageComponent = function () {
-  if (textc.value === "" || textc.value === undefined) {
+  if (textc.data === "" || textc.data === undefined) {
     console.log("textc empty")
-    PageStore.dispatch("deletePageItems", index)
+    Mitt.emit("deletePageItem", index)
+    textc.data = undefined
   }
 }
-let textc = computed(
-    {
-      get() {
-        if (index >= PageStore.getters.getComponentsArr.length) {
-          return "";
-        }
-        return PageStore.getters.getComponentsArr[index].text
-      },
-      set(value) {
-        const data = {
-          index,
-          text: value
-        }
-        PageStore.dispatch("saveCContenttmp", data)
-      }
-    }
-)
+const textc = reactive({
+  data: props.data.text
+})
 const saveTextc = function () {
   const data = {
-    text: textc.value,
+    text: textc.data,
     index
   }
-
-  if (index < PageStore.getters.getComponentsArr.length) {
-    console.log("提交内容text", index)
-    PageStore.dispatch("saveCContent", data);
-  }
+  if (textc.data !== undefined)
+    Mitt.emit("saveContent", data);
 }
 </script>
 

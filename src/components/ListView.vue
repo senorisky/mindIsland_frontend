@@ -105,10 +105,11 @@
       </span>
     </template>
   </el-dialog>
+  <CardView :drawer="drawer3" :data="ItemData.data" :index="ItemData.index"></CardView>
 </template>
 
 <script setup name="ListView">
-import {computed, h, onMounted, reactive, ref} from "vue";
+import {computed, h, onMounted, onUnmounted, reactive, ref, watch} from "vue";
 import NoteStore from "../store/index"
 import {ElNotification} from "element-plus";
 import {
@@ -116,32 +117,34 @@ import {
   Edit,
 } from '@element-plus/icons-vue'
 import Axios from "@/utils/request";
+import CardView from "@/components/CardView";
+import Mitt from "@/EventBus/mitt";
 
 const centerDialogVisible = ref(false)
 const columIndex = ref();
-const DialogConfirm = function (index) {
-  console.log("弹出dialog")
-  centerDialogVisible.value = true;
-  columIndex.value = index;
-}
 const newColum = ref(null);
 const formRef = ref(null)
+const direction = ref('rtl')
+const drawer1 = ref(false)
+const drawer2 = ref(false)
+const drawer3 = ref(false)
+//{id:,vid:,items:[{colum:,items[{name:},{name:}....]},{colum:,items[]}.....]}  ListData
+const listData = reactive({})
+const ItemData = reactive({
+  data: {},
+  index: -1
+});
+// eslint-disable-next-line no-unused-vars
+const listInfo = reactive({
+  id: "",
+  viewId: ""
+})
 const form = reactive({
   name: undefined,
   date: ref(""),
-  desc: "",
+  des: "",
   type: "note",
   index: undefined
-})
-const drawer1 = ref(false)
-const drawer2 = ref(false)
-const small = computed({
-  get() {
-    //   console.log("style", listData.value.length > 1)
-    if (listData.value.length > 1)
-      return true;
-    return false;
-  }
 })
 const ItemStyle = reactive({
   // "color": "inherit",
@@ -155,7 +158,30 @@ const ItemStyle = reactive({
   "margin-bottom": " 10px",
   // "position": "static"
 })
-const direction = ref('rtl')
+const small = computed({
+  get() {
+    //   console.log("style", listData.value.length > 1)
+    if (listData.value.length > 1)
+      return true;
+    return false;
+  }
+})
+
+const loading = computed({
+  get() {
+    return listData.value !== undefined;
+  }
+})
+const lastvid = computed({
+  get() {
+    return NoteStore.getters.getLastViewId;
+  }
+})
+const DialogConfirm = function (index) {
+  console.log("弹出dialog")
+  centerDialogVisible.value = true;
+  columIndex.value = index;
+}
 const handleClose = (done) => {
   //抽屉关闭
   done()
@@ -240,47 +266,53 @@ const addListColum = function () {
   });
   drawer2.value = false;
 }
-const loading = computed({
-  get() {
-    return listData.value !== undefined;
-  }
-})
-const listData = reactive({})
-// eslint-disable-next-line no-unused-vars
-const listInfo = reactive({
-  id: "",
-  viewId: ""
-})
+
+const askData = function () {
+  const vid = NoteStore.getters.getCurrentView.id;
+  console.log("getElist", NoteStore.getters.getCurrentView)
+  Axios.get("/elist/getEList", {
+    params: {
+      viewId: vid
+    }
+  }).then((res) => {
+    if (res.code === 200) {
+      console.log("ask for list", res);
+      const elist = {
+        id: res.data.elist.id,
+        viewId: res.data.elist.viewId,
+        datas: res.data.elist.datas
+      }
+      listData.value = elist.datas;
+      listInfo.id = elist.id;
+      listInfo.viewId = elist.viewId;
+      console.log("ok", listData)
+    }
+  }).catch(function (error) {
+    console.log(error);
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
+    })
+  });
+}
 onMounted(() => {
   console.log("listview mounted", listData)
+  Mitt.on("CloseCardView", function () {
+    drawer3.value = false;
+  })
   if (listData.value === undefined) {
-    const vid = NoteStore.getters.getCurrentView.id;
-    console.log("getElist", NoteStore.getters.getCurrentView)
-    Axios.get("/elist/getEList", {
-      params: {
-        viewId: vid
-      }
-    }).then((res) => {
-      if (res.code === 200) {
-        console.log("ask for list", res);
-        const elist = {
-          id: res.data.elist.id,
-          viewId: res.data.elist.viewId,
-          datas: res.data.elist.datas
-        }
-        listData.value = elist.datas;
-        listInfo.id = elist.id;
-        listInfo.viewId = elist.viewId;
-        console.log("ok", listData)
-      }
-    }).catch(function (error) {
-      console.log(error);
-      ElNotification({
-        title: '提示',
-        message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
-      })
-    });
+    askData()
   }
+  watch(lastvid, (newValue,old) => {
+    console.log("old vid", old)
+    console.log("new value", newValue)
+    if (newValue !== old && listData.value !== undefined) {
+      askData()
+    }
+  })
+})
+onUnmounted(() => {
+  Mitt.off("CloseCardView")
 })
 //index是下标位置，row是一个Proxy
 const deletList = function (index) {
@@ -347,8 +379,11 @@ const deleteItem = function (Lindex, index) {
     // alert('系统繁忙请联系管理员');
   });
 }
-const ItemDetail = function () {
-
+const ItemDetail = function (index, row) {
+  drawer3.value = true;
+  console.log(index, row)
+  ItemData.data = row;
+  ItemData.index = index;
 }
 const ShowItemDw = (index) => {
   drawer1.value = true;

@@ -43,14 +43,14 @@
       </template>
     </el-upload>
     <el-dialog class="picPreVIew" v-model="data.dialogVisible">
-      <img class="PreImg" w-full :src="data.dialogImageUrl" alt="Preview Image"/>
+      <el-image class="PreImg" w-full :src="data.dialogImageUrl" :lazy=true alt="Preview Image"/>
     </el-dialog>
   </div>
 </template>
 
 <script setup name="GalleryView">
 // eslint-disable-next-line no-unused-vars
-import {computed, h, onMounted, reactive, ref} from "vue";
+import {computed, h, onMounted, reactive, ref, watch} from "vue";
 import {ElNotification} from "element-plus";
 import UserStore from "../store/index"
 import NoteStore from "../store/index"
@@ -63,13 +63,15 @@ const upLoadData = reactive({
   userId: UserStore.getters.getUser.id,
   viewId: NoteStore.getters.getCurrentView.id
 })
-const pictureList = computed({
+//{id:,viewId:,[{name:,url:},......]}  Gallery
+const pictureList = ref([])
+const galleryInfo = reactive({
+  id: "",
+  viewId: ""
+})
+const lastvid = computed({
   get() {
-    console.log("getPics", NoteStore.getters.getCurrentViewData.datas)
-    return NoteStore.getters.getCurrentViewData.datas
-  },
-  set(value) {
-    console.log(value)
+    return NoteStore.getters.getLastViewId;
   }
 })
 const beforeUploadHandle = function (file) {
@@ -90,7 +92,7 @@ const beforeUploadHandle = function (file) {
     })
     return false;
   }
-  console.log("beforeUpLoad", pictureList.value)
+  console.log("beforeUpLoad", pictureList)
   let len = pictureList.value.length;
   for (let i in pictureList.value) {
     if ((pictureList.value[i].name === file.name) && (i !== len - 1)) {
@@ -108,33 +110,41 @@ const data = reactive({
   dialogVisible: false,
   disabled: false
 })
+const askData = function () {
+  const vid = NoteStore.getters.getCurrentView.id;
+  console.log("askGallery")
+  Axios.get("/gallery/getAllpic", {
+    params: {
+      viewId: vid
+    }
+  }).then((res) => {
+    if (res.code === 200) {
+      console.log("ask for elist", res);
+      if (res.data.gallery.datas !== null)
+        pictureList.value = res.data.gallery.datas;
+      galleryInfo.id = res.data.gallery.id
+      galleryInfo.viewId = res.data.gallery.viewId
+    }
+  }).catch(function (error) {
+    console.log(error);
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
+    })
+  });
+}
 onMounted(() => {
-  console.log("listview mounted")
-  if (pictureList.value === undefined) {
-    const vid = NoteStore.getters.getCurrentView.id;
-    console.log("askGallery")
-    Axios.get("/gallery/getAllpic", {
-      params: {
-        viewId: vid
-      }
-    }).then((res) => {
-      if (res.code === 200) {
-        console.log("ask for elist", res);
-        const gallery = {
-          id: res.data.gallery.id,
-          viewId: res.data.gallery.viewId,
-          datas: res.data.gallery.datas
-        }
-        NoteStore.commit("saveCurrentViewData", gallery)
-      }
-    }).catch(function (error) {
-      console.log(error);
-      ElNotification({
-        title: '提示',
-        message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
-      })
-    });
+  console.log("galleryView mounted", pictureList.value)
+  if (pictureList.value.length === 0) {
+    askData()
   }
+  watch(lastvid, (newValue, old) => {
+    console.log("old vid", old)
+    console.log("new value", newValue)
+    if (newValue !== old && pictureList.value !== undefined) {
+      askData()
+    }
+  })
 })
 const UpLoadOnePic = function (item) {
   const config = {
@@ -145,18 +155,14 @@ const UpLoadOnePic = function (item) {
   let formData = new FormData()
   formData.append('file', item.file)
   formData.append('userId', UserStore.getters.getUser.id)
-  formData.append('viewId', NoteStore.getters.getCurrentView.id)
+  formData.append('viewId', galleryInfo.viewId)
   Axios.post('/gallery/upload', formData, config).then(res => {
     if (res.code === 200) {
-      const lastPic = {
-        'name': res.data.name,
-        'url': res.data.url
-      }
-      NoteStore.commit("saveLastGalleryPic", lastPic);
+      console.log("上传图片成功", res)
     } else {
       ElNotification({
         title: '提示',
-        message: h('i', {style: 'color: teal'}, "上传失败"),
+        message: h('i', {style: 'color: teal'}, res.msg),
       })
     }
   }).catch(err => {
@@ -165,7 +171,27 @@ const UpLoadOnePic = function (item) {
 }
 const handleRemove = function (file) {
   console.log("galleryDeleteOnePic", file);
-  NoteStore.dispatch("galleryDeleteOnePic", file)
+  Axios.get("/gallery/deleteOne", {
+    params: {
+      userId: UserStore.getters.getUser.id,
+      viewId: galleryInfo.viewId,
+      picName: file.name
+    }
+  }).then((res) => {
+    console.log(res)
+    if (res.code === 200) {
+      pictureList.value = res.data.gallery.datas;
+      galleryInfo.id = data.gallery.id
+      galleryInfo.viewId = res.data.gallery.viewId
+    } else {
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, res.msg),
+      })
+    }
+  }).catch(function (error) {
+    console.log(error)
+  })
 }
 const handlePictureCardPreview = function (file) {
   data.dialogImageUrl = file.url;

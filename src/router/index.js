@@ -5,7 +5,6 @@ import ProFile from "@/components/ProFile";
 import PersonSet from "@/components/PersonSet";
 import UserStore from "../store/index.js"
 import NoteStore from "@/store";
-import PageStore from "@/store";
 // import {toRaw} from "vue";
 
 const routes = [
@@ -103,7 +102,6 @@ router.beforeEach(async (to, from, next) => {
         NoteStore.commit("saveMenuData", menuData)
         // console.log("vuex cview")
         NoteStore.commit("saveCurrentView", JSON.parse(localStorage.getItem("currentView")))
-        PageStore.commit("savePageData", JSON.parse(localStorage.getItem("curPageData")))
         console.log("路由动态加载了数据")
         next({...to, replace: true})
     } else {

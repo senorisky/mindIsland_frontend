@@ -1,51 +1,38 @@
 <template>
   <!--  三级标题  -->
   <div>
-    <el-input v-model="h3" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH3" placeholder="三级标题">
+    <el-input v-model="h3.data" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH3"
+              placeholder="三级标题">
     </el-input>
   </div>
 </template>
 
 <script setup name="HeadThree">
-import {computed} from "vue";
-import PageStore from "@/store";
+import {reactive} from "vue";
+import Mitt from "@/EventBus/mitt";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
+  data: Object,
   id: Number
-})// eslint-disable-next-line vue/no-setup-props-destructure
-const index = props.id
+})
 const deletePageComponent = function () {
-  if (h3.value === "" || h3.value === undefined) {
+  if (h3.data === "" || h3.data === undefined) {
     console.log("h3 empty")
-    PageStore.dispatch("deletePageItems", index)
+    Mitt.emit("deletePageItem", props.id)
+    h3.data = undefined;
   }
-
 }
-const h3 = computed({
-      get() {
-        if (index >= PageStore.getters.getComponentsArr.length) {
-          return "";
-        }
-        return PageStore.getters.getComponentsArr[index].text
-      }
-      ,
-      set(value) {
-        const h3t = {
-          text: value,
-          id: props.id
-        }
-        PageStore.dispatch("saveCContenttmp", h3t)
-      }
-    }
-)
+const h3 = reactive({
+  data: props.data.text
+})
 const saveH3 = function () {
   const h3t = {
-    text: h3.value,
-    index
+    text: h3.data,
+    index: props.id
   }
-  if (index < PageStore.getters.getComponentsArr.length)
-    PageStore.dispatch("saveCContent", h3t)
+  if (h3.data !== undefined)
+    Mitt.emit("saveContent", h3t);
 }
 
 </script>

@@ -1,12 +1,11 @@
 <template>
   <div style="display: flex" v-loading="loading.value">
-    <el-table :data="tableData" max-height="350"
+    <el-table :data="tableData.value" max-height="350"
               style="width: 100%" stripe ref="myTable" align="left"
               table-layout="fixed">
       <!-- 动态列 -->
-
       <el-table-column
-          v-for="(item, index) in dynamicColumns"
+          v-for="(item, index) in dynamicColumns.value"
           :key="index"
           :property="item"
           :label="item"
@@ -72,7 +71,6 @@
         direction="rtl"
         :before-close="handleClose"
     >
-
       <el-input v-model="name" placeholder="Give a new Colum name"/>
 
       <div style="margin-top: 30px">
@@ -84,7 +82,7 @@
 </template>
 
 <script setup>
-import {computed, h, onMounted, reactive, ref} from "vue";
+import {computed, h, onMounted, reactive, ref, watch} from "vue";
 import NoteStore from "../store/index"
 import {Delete} from "@element-plus/icons-vue";
 import Axios from "@/utils/request";
@@ -98,24 +96,51 @@ const DialogConfirm = function (index) {
   columIndex.value = index;
 }
 const name = ref("");
+//增加列
 const addColumn = function () {
   // console.log("添加table列")
-  NoteStore.dispatch("addTableColum", name.value);
+  Axios.get("/etable/addTableColumn", {
+    params: {
+      name: name.value,
+      viewId: tableInfo.viewId
+    }
+  }).then((res) => {
+    if (res.code === 200) {
+      console.log("addtableColumn", res.data)
+      tableData.value = res.data.etable.datas;
+      tableInfo.id = res.data.etable.id;
+      tableInfo.viewId = res.data.etable.viewId;
+      dynamicColumns.value = res.data.etable.colums
+    }
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, res.msg),
+    })
+  }).catch(function (error) {
+    console.log(error)
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, "系统错误，请检查网络"),
+    })
+  })
   drawer1.value = false;
 }
 const drawer1 = ref(false);
 // eslint-disable-next-line no-unused-vars
 const isEditHeader = ref(false)
-// const isEdit = ref(true)
-const tableData = computed({
+const tableData = reactive({})
+const tableInfo = reactive({
+  id: "",
+  viewId: ""
+})
+const lastvid = computed({
   get() {
-    // console.log("tableData", NoteStore.getters.getCurrentViewData)
-    return NoteStore.getters.getCurrentViewData.datas;
+    return NoteStore.getters.getLastViewId;
   }
 })
 const loading = computed({
   get() {
-    return NoteStore.getters.getCurrentViewData != undefined;
+    return tableData.value !== undefined;
   }
 })
 const handleClose = (done) => {
@@ -125,46 +150,111 @@ const handleClose = (done) => {
 }
 // eslint-disable-next-line no-unused-vars
 const propArr = reactive([]) // 生成dynamicColumns时的记录
-const dynamicColumns = computed({
-  get() {
-    return NoteStore.getters.getCurrentViewData.colums
-  }
-})// 存放动态列
-
+const dynamicColumns = reactive([])// 存放动态列
+//删除列
 const deleteColumn = function (item) {
   centerDialogVisible.value = false;
   // console.log("删除table列", item)
-  NoteStore.dispatch("deleteTableColum", item)
-}
-const deleteRow = function (index) {
-  // console.log("删除table项", index)
-  NoteStore.dispatch("deleteTableItem", index)
-}
-const addTableItem = function () {
-  NoteStore.dispatch("addTableItem")
-}
-
-onMounted(() => {
-  if (tableData.value === undefined) {
-    const vid = NoteStore.getters.getCurrentView.id;
-    console.log("askTableData", vid)
-    Axios.get("/etable/getTable", {
-      params: {
-        viewId: vid
-      }
-    }).then((res) => {
-      if (res.code === 200) {
-        console.log("读取tabledata成功", res)
-        NoteStore.commit("saveCurrentViewData", res.data.etable)
-      }
+  Axios.get("/etable/deleteTableColum", {
+    params: {
+      name: item,
+      viewId: tableInfo.viewId
+    }
+  }).then((res) => {
+    if (res.code === 200) {
+      tableData.value = res.data.etable.datas;
+      tableInfo.id = res.data.etable.id;
+      tableInfo.viewId = res.data.etable.viewId;
+      dynamicColumns.value = res.data.etable.colums;
+    } else {
       ElNotification({
         title: '提示',
         message: h('i', {style: 'color: teal'}, res.msg),
       })
-    }).catch(function (error) {
-      console.log("读取tabledata出错", error)
+    }
+  }).catch(function (error) {
+    console.log(error)
+  })
+}
+const deleteRow = function (index) {
+  // console.log("删除table项", index)
+  Axios.get("/etable/deleteTableItem", {
+    params: {
+      index,
+      viewId: tableInfo.viewId
+    }
+  }).then(((res) => {
+    console.log("deleteTableItem", res)
+    if (res.code === 200) {
+      tableData.value = res.data.etable.datas;
+      tableInfo.id = res.data.etable.id;
+      tableInfo.viewId = res.data.etable.viewId;
+    } else {
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, res.msg),
+      })
+    }
+  })).catch(function (error) {
+    console.log(error)
+  })
+}
+const addTableItem = function () {
+  Axios.get("/etable/addTableItem", {
+    params: {
+      viewId: tableInfo.viewId
+    }
+  }).then((res) => {
+    console.log("addTableItem", res)
+    if (res.code === 200) {
+      tableData.value = res.data.etable.datas;
+      tableInfo.id = res.data.etable.id;
+      tableInfo.viewId = res.data.etable.viewId;
+    } else {
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, res.msg),
+      })
+    }
+
+  }).catch(function (error) {
+    console.log(error)
+  })
+}
+const askData = function () {
+  const vid = NoteStore.getters.getCurrentView.id;
+  console.log("askTableData", vid)
+  Axios.get("/etable/getTable", {
+    params: {
+      viewId: vid
+    }
+  }).then((res) => {
+    console.log("读取tabledata", res)
+    if (res.code === 200) {
+      tableData.value = res.data.etable.datas;
+      tableInfo.id = res.data.etable.id;
+      tableInfo.viewId = res.data.etable.viewId;
+      dynamicColumns.value = res.data.etable.colums
+    }
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, res.msg),
     })
+  }).catch(function (error) {
+    console.log("读取tabledata出错", error)
+  })
+}
+onMounted(() => {
+  if (tableData.value === undefined) {
+    askData()
   }
+  watch(lastvid, (newValue,old) => {
+    console.log("old vid", old)
+    console.log("new value", newValue)
+    if (newValue !== old && tableData.value !== undefined) {
+      askData()
+    }
+  })
 })
 </script>
 

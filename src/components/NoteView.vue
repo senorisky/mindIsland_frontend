@@ -46,7 +46,7 @@
     </template>
   </el-dialog>
   <div class="view-page">
-    <RouterView ></RouterView>
+    <RouterView></RouterView>
   </div>
   <div class="note_drawer">
     <!--   添加view的抽屉 -->
@@ -219,7 +219,7 @@ const Viewdetail = function (tag) {
   const lastView = NoteStore.getters.getCurrentView;
   if (tag.id !== lastView.id) {
     console.log(tag.type, vid)
-    NoteStore.commit("saveCurrentViewData", new Object())
+    NoteStore.commit("saveLastViewId", lastView.id)
     NoteStore.commit("saveCurrentViewById", vid);
     console.log("点击NoteView了")
     router.push({
@@ -250,6 +250,7 @@ const noteInfo = computed({
 
 // let views = reactive([]);
 onMounted(() => {
+  console.log("noteMounted")
 //点击note的view
   Mitt.on("ViewRouter", (item) => {
     //数据
@@ -258,6 +259,7 @@ onMounted(() => {
     console.log("lastview", lastView)
     if ((lastView === null) || (item.id !== lastView.id)) {
       console.log(item.type, vid)
+      NoteStore.commit("saveLastViewId", lastView.id)
       NoteStore.commit("saveCurrentViewById", vid);
       console.log("点击NoteView了")
       router.push({
@@ -267,6 +269,7 @@ onMounted(() => {
   })
 })
 onUnmounted(() => {
+  console.log("note Unmounted")
   Mitt.off("ViewRouter")
 })
 </script>

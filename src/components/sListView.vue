@@ -3,7 +3,7 @@
   <div style="margin-left: 80px">
     <div class="singleList_container" v-loading="loading.value"
          element-loading-text="Loading this maybe cast seconds...">
-      <div class="list" v-for="(item,index) in listData" :key="index">
+      <div class="list" v-for="(item,index) in listData.value" :key="index">
         <el-table :data="item.items" max-height="300px"
                   :cell-style="ItemStyle" stripe>
           <el-table-column style="width: 400px" prop="name" :label="item.colum">
@@ -108,7 +108,7 @@
 
 <script setup name="sListView">
 // eslint-disable-next-line no-unused-vars
-import {computed, h, onBeforeUnmount, onMounted, onUnmounted, reactive, ref, toRaw} from "vue";
+import {computed, h, onMounted, onUnmounted, reactive, ref, toRaw, watch} from "vue";
 import NoteStore from "../store/index"
 import {ElNotification} from "element-plus";
 import {
@@ -130,6 +130,7 @@ const form = reactive({
 })
 const drawer1 = ref(false)
 const drawer2 = ref(false)
+
 const ItemStyle = reactive({
   "height": "40px",
   "margin-bottom": " 10px",
@@ -198,16 +199,14 @@ const ShowItemDw = (index) => {
   form.date = Date.now();
 }
 const submitUpLoad = function (item) {
-  const tmp = NoteStore.getters.getCurrentViewData;
+  const tmp = {
+    id: listInfo.id,
+    viewId: listInfo.viewId,
+    datas: listData.value
+  }
   console.log("submitCard", form)
-  const t = toRaw(tmp)
-  t.datas[form.index].items.push({
-    name: form.name,
-    date: form.date,
-    des: form.desc,
-  })
-  console.log("addItemWithResource", t)
-  const len = t.datas[form.index].items.length;
+  console.log("addItemWithResource", tmp)
+  const len = tmp.datas[form.index].items.length;
   const config = {
     headers: {
       'Content-Type': 'multipart/form-data'
@@ -216,12 +215,14 @@ const submitUpLoad = function (item) {
   let formData = new FormData()
   formData.append("file", item.file);
   formData.append('userId', UserStore.getters.getUser.id)
-  formData.append('elistString', JSON.stringify(t))
+  formData.append('elistString', JSON.stringify(tmp))
   formData.append('index', len - 1)
   Axios.post('/elist/upload', formData, config).then(res => {
     console.log("upCard", res)
     if (res.code === 200) {
-      NoteStore.commit("saveCurrentViewData", res.data.elist)
+      listInfo.id = res.data.elist.id;
+      listInfo.viewId = res.data.elist.viewId;
+      listData.value = res.data.elist.datas;
       form.desc = "";
       formRef.value.resetFields();
       drawer1.value = false;
@@ -246,7 +247,34 @@ const addItem = function () {
   }
   if (upList.value === undefined || upList.value === 0) {
     //没有资源的上传
-    NoteStore.dispatch("addItem", form)
+    const tmp = {
+      id: listInfo.id,
+      viewId: listInfo.viewId,
+      datas: listData.value
+    }
+    console.log("addItem", tmp)
+    tmp.datas[form.index].items.push({
+      name: form.name,
+      date: form.date,
+      des: form.desc
+    })
+    Axios.post("/elist/saveEList", {
+      elist: tmp,
+      url: ""
+    }).then((res) => {
+      if (res.code === 200) {
+        console.log(res);
+        listData.value = res.data.elist.datas;
+      }
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, res.msg),
+      })
+
+    }).catch(function (error) {
+      console.log(error);
+      // alert('系统繁忙请联系管理员');
+    });
     form.desc = "";
     formRef.value.resetFields();
     drawer1.value = false;
@@ -256,52 +284,106 @@ const addItem = function () {
 }
 const loading = computed({
   get() {
-    return NoteStore.getters.getCurrentViewData.datas !== undefined;
+    return listData.value !== undefined;
   }
 })
-const listData = computed({
+//{id:,viewId:,[{name:head:description:time:,resource:}......]}  singleListData
+const listData = reactive({})
+const listInfo = reactive({
+  id: "",
+  viewId: ""
+})
+const lastvid = computed({
   get() {
-    return NoteStore.getters.getCurrentViewData.datas;
+    return NoteStore.getters.getLastViewId;
   }
 })
+const askData = function () {
+  const vid = NoteStore.getters.getCurrentView.id;
+  console.log("getElist", NoteStore.getters.getCurrentView)
+  Axios.get("/elist/getEList", {
+    params: {
+      viewId: vid
+    }
+  }).then((res) => {
+    if (res.code === 200) {
+      console.log("ask for slist", res);
+      const elist = {
+        id: res.data.elist.id,
+        viewId: res.data.elist.viewId,
+        datas: res.data.elist.datas
+      }
+      listData.value = elist.datas;
+      listInfo.id = elist.id;
+      listInfo.viewId = elist.viewId;
+    }
+  }).catch(function (error) {
+    console.log(error);
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
+    })
+  });
+}
 onMounted(() => {
   Mitt.on("CloseCardView", function () {
     drawer2.value = false;
   })
   console.log("listview mounted")
   if (listData.value === undefined) {
-    const vid = NoteStore.getters.getCurrentView.id;
-    console.log("getElist", NoteStore.getters.getCurrentView)
-    Axios.get("/elist/getEList", {
-      params: {
-        viewId: vid
+    askData()
+  }
+  watch(lastvid, (newValue, old) => {
+    console.log("old vid", old)
+    console.log("new value", newValue)
+    if (newValue !== old && listData.value !== undefined) {
+      askData()
+    }
+  })
+})
+const deleteItem = function (Lindex, index) {
+  // console.log("deleteItem", Lindex, index, row)
+  const tmp = {
+    id: listInfo.id,
+    viewId: listInfo.viewId,
+    datas: listData.value
+  }
+  let url = "";
+  let poster = "";
+  if (tmp.datas[Lindex].items[index].url !== undefined) {
+    url = tmp.datas[Lindex].items[index].url;
+  }
+  if (tmp.datas[Lindex].items[index].poster !== undefined) {
+    poster = tmp.datas[Lindex].items[index].poster;
+  }
+  // console.log("deleteListItem", tmp, index)
+  tmp.datas[Lindex].items.splice(index, 1);
+  Axios.post("/elist/saveEList", {
+    elist: tmp,
+    url,
+    poster
+  }).then((res) => {
+    if (res.code === 200) {
+      console.log("deleteListItem", res);
+      const elist = {
+        id: res.data.elist.id,
+        viewId: res.data.elist.viewId,
+        datas: res.data.elist.datas
       }
-    }).then((res) => {
-      if (res.code === 200) {
-        console.log("ask for gallery", res);
-        const elist = {
-          id: res.data.elist.id,
-          viewId: res.data.elist.viewId,
-          datas: res.data.elist.datas
-        }
-        NoteStore.commit("saveCurrentViewData", elist)
-      }
-    }).catch(function (error) {
-      console.log(error);
+      listInfo.id = elist.id;
+      listInfo.viewId = elist.viewId;
+      listData.value = elist.datas;
+    } else {
       ElNotification({
         title: '提示',
-        message: h('i', {style: 'color: teal'}, '加载失败，请重试'),
+        message: h('i', {style: 'color: teal'}, '删除失败'),
       })
-    });
-  }
-})
-const deleteItem = function (Lindex, index, row) {
-  // console.log("deleteItem", Lindex, index, row)
-  const param = {
-    Lindex,
-    index, row
-  }
-  NoteStore.dispatch("deleteListItem", param);
+      return;
+    }
+  }).catch(function (error) {
+    console.log(error);
+    // alert('系统繁忙请联系管理员');
+  });
 }
 const ItemDetail = function (index, row) {
   drawer2.value = true;

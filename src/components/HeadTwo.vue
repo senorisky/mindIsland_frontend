@@ -1,49 +1,41 @@
 <template>
   <!--  二级标题  -->
   <div>
-    <el-input v-model="h2" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH2" placeholder="二级标题">
+    <el-input v-model="h2.data" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH2"
+              placeholder="二级标题">
     </el-input>
   </div>
 </template>
 
 <script setup name="HeadTwo">
-import {computed} from "vue";
-import PageStore from "@/store";
+import {reactive} from "vue";
+
+import Mitt from "@/EventBus/mitt";
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
+  data: Object,
   id: Number
 })
 const deletePageComponent = function () {
-  if (h2.value === "" || h2.value === undefined) {
+  if (h2.data === "" || h2.data === undefined) {
     console.log("h2 empty")
-    PageStore.dispatch("deletePageItems", index)
+    Mitt.emit("deletePageItem", index)
+    h2.data = undefined;
   }
 }
 // eslint-disable-next-line vue/no-setup-props-destructure
 const index = props.id
-const h2 = computed({
-  get() {
-    if (index >= PageStore.getters.getComponentsArr.length) {
-      return "";
-    }
-    return PageStore.getters.getComponentsArr[index].text
-  },
-  set(value) {
-    const h2t = {
-      text: value,
-      index
-    }
-    PageStore.dispatch("saveCContenttmp", h2t)
-  }
+const h2 = reactive({
+  data: props.data.text
 })
 const saveH2 = function () {
   const h2t = {
-    text: h2.value,
+    text: h2.data,
     index
   }
-  if (index < PageStore.getters.getComponentsArr.length)
-    PageStore.dispatch("saveCContent", h2t)
+  if (h2.data !== undefined)
+    Mitt.emit("saveContent", h2t);
 }
 </script>
 

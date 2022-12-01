@@ -16,8 +16,11 @@
     "mitt": "^3.0.0",
     "nanoid": "^4.0.0",
     "prismjs": "^1.29.0",
+    "video.js": "^7.20.3",
     "vue": "^3.2.13",
+    "vue-print-nb": "^1.7.5",
     "vue-router": "^4.0.3",
+    "vue3-print-nb": "^0.1.4",
     "vuex": "^4.0.0"
   },
   "devDependencies": {

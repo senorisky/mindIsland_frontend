@@ -14,14 +14,6 @@
       </div>
       <!-- el-sub-menu和el-menu-item 可能会有多层嵌套，所以抽取出来封装成递归组件-->
       <el-menu unique-opened>
-        <el-menu-item @click="ToPersonSet">
-          <template #title>
-            <el-icon>
-              <setting></setting>
-            </el-icon>
-            <span>Personal Home</span>
-          </template>
-        </el-menu-item>
         <div style="height: 7px;width: 180px;background: #f5f5f5"></div>
         <MainMenu :menuData="NoteStore.getters.getMenuData"></MainMenu>
       </el-menu>
@@ -88,18 +80,15 @@
 
 <script setup name="MainView">
 import MainMenu from "@/components/MainMenu";
-import {Setting} from '@element-plus/icons-vue'
 
 // eslint-disable-next-line no-unused-vars
-import {computed, h, onBeforeMount, onMounted, onUnmounted, reactive, ref, toRaw} from "vue";
+import {h, onMounted, onUnmounted, reactive, ref} from "vue";
 import Mitt from "@/EventBus/mitt";
 import router from "@/router";
 import NoteStore from "../store/index"
 import UserStore from "../store/index"
-import PageStore from "../store/index"
 import {ElNotification} from "element-plus";
 import {nanoid} from "nanoid";
-import Axios from "@/utils/request";
 //获得dom元素原型  ref绑定
 const formRef = ref(null)
 const form = reactive({
@@ -195,29 +184,15 @@ const PageRouter = function (pageName) {
   if (pageName !== lastNodeName) {
     localStorage.setItem("currentNote", pageName)
     NoteStore.commit("saveCurrentNoteByName", pageName)
+    NoteStore.commit("saveLastViewId", lastNodeName);
     const pid = NoteStore.getters.getCurrenNote.id
-    console.log("askPage", pid)
-    //axios 请求page内容
-    Axios.get("/page/getPageData", {
-      params: {
-        noteId: pid
-      }
-    }).then((res) => {
-      console.log("askPage", res)
-      if (res.code === 200) {
-        console.log("askPageDat", res.data)
-        PageStore.commit("savePageData", res.data.page)
-      }
-    })
     console.log("当前note", NoteStore.getters.getCurrenNote)
     router.push({
       name: pid,
     });
   }
 }
-const ToPersonSet = function () {
-  router.push({path: "/space/PersonSet"})
-}
+
 onMounted(() => {
   //只点击带孩子的note进行的路由跳转
   Mitt.on("MenuRouter", MenuRouter)
