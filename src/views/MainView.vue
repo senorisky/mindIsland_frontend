@@ -4,7 +4,7 @@
     <div>
       <div style="margin-bottom: 6px">
         <p>{{ UserStore.getters.getUser.name }}</p>
-        <el-input v-model="searchInput" class="w-50 m-2" placeholder="search">
+        <el-input @click="showSeaChDialog" class="w-50 m-2" placeholder="search">
           <template #prefix>
             <el-icon class="el-input__icon">
               <search/>
@@ -15,6 +15,7 @@
       <!-- el-sub-menu和el-menu-item 可能会有多层嵌套，所以抽取出来封装成递归组件-->
       <el-menu unique-opened>
         <div style="height: 7px;width: 180px;background: #f5f5f5"></div>
+        <!-- 没有子节点，使用 el-menu-item 渲染 -->
         <MainMenu :menuData="NoteStore.getters.getMenuData"></MainMenu>
       </el-menu>
       <el-button round class="addPN" @click="showNPDrawer">Note & Page
@@ -76,13 +77,43 @@
       </el-form>
     </el-drawer>
   </div>
+  <div class="searchDialog">
+    <el-dialog
+        :before-close="beforeDialogClose"
+        v-model="centerDialogVisible" title="搜索" :close-on-press-escape="true" width="40%"
+        center>
+      <div style="display: flex;flex-direction: column;">
+        <el-input v-model="searchInput" @click="showSeaChDialog" @keydown.enter="search" class="w-50 m-2"
+                  placeholder="可支持搜索note、page和view   enter确定">
+          <template #prefix>
+            <el-icon class="el-input__icon">
+              <search/>
+            </el-icon>
+          </template>
+        </el-input>
+        <el-table :data="seachRes" max-height="300px"
+                  :cell-style="ItemStyle" stripe>
+          <el-table-column style="width: 400px" label="结果">
+            <template #default="scope">
+              <div style=" display: flex;flex-direction: row;" @click="searchRouter(scope.row.id,scope.row.fid)">
+                <span style="font-weight: bold;width: 300px;font-size: 18px"
+                      v-text="scope.row.name"/>
+                <span>           {{ scope.row.type }}---{{ scope.row.fname }}</span>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </el-dialog>
+  </div>
+
 </template>
 
 <script setup name="MainView">
 import MainMenu from "@/components/MainMenu";
 
 // eslint-disable-next-line no-unused-vars
-import {h, onMounted, onUnmounted, reactive, ref} from "vue";
+import {h, onMounted, onUnmounted, reactive, ref, toRaw} from "vue";
 import Mitt from "@/EventBus/mitt";
 import router from "@/router";
 import NoteStore from "../store/index"
@@ -91,22 +122,103 @@ import {ElNotification} from "element-plus";
 import {nanoid} from "nanoid";
 //获得dom元素原型  ref绑定
 const formRef = ref(null)
+const searchInput = ref("")
+let drawer1 = ref(false)
+const centerDialogVisible = ref(false)
+const direction = ref('rtl')
+const seachRes = reactive([])
+const ItemStyle = reactive({
+  "height": "20px",
+  "margin-bottom": " 10px",
+})
 const form = reactive({
   name: undefined,
   date: ref(""),
   desc: "",
   type: "note"
 })
-const searchInput = ref('')
-let drawer1 = ref(false)
-const direction = ref('rtl')
 const handleClose = (done) => {
   //抽屉关闭
   done()
   formRef.value.resetFields();
 }
+const searchRouter = function (id, fid) {
+  centerDialogVisible.value = false;
+  if (fid !== undefined) {
+    NoteStore.commit("saveCurrentNoteById", fid)
+    NoteStore.commit("saveCurrentView", {})
+    console.log("当前note", NoteStore.getters.getCurrenNote)
+    router.push({
+      name: fid + "Profile",
+    });
+    const vid = id
+    const lastView = NoteStore.getters.getCurrentView;
+    console.log("lastview", lastView)
+    if ((lastView === null) || (id !== lastView.id)) {
+      NoteStore.commit("saveLastViewId", lastView.id)
+      NoteStore.commit("saveCurrentViewById", vid);
+      console.log("点击NoteView了")
+      router.push({
+        name: vid
+      });
+    }
+  } else {
+    NoteStore.commit("saveCurrentNoteById", id)
+    NoteStore.commit("saveCurrentView", {})
+    console.log("当前note", NoteStore.getters.getCurrenNote)
+    router.push({
+      name: id + "Profile",
+    });
+  }
+}
+const showSeaChDialog = function () {
+  centerDialogVisible.value = true;
+}
+const beforeDialogClose = function () {
+  searchInput.value = ""
+  seachRes.length = 0
+  // console.log(seachRes)
+  // Vue3必须通过myArray.length = 0的方式清空数组，不能直接让它等于[]或重新声明
+  centerDialogVisible.value = false
+}
+const search = function () {
+  if ("" === searchInput.value) {
+    return;
+  }
+  seachRes.length = 0;
+  const menu = NoteStore.getters.getMenuData;
+  // console.log(menu)
+  const tmp = toRaw((menu))
+  for (let item of tmp) {
+    if (item.name.indexOf(searchInput.value) !== -1) {
+      let i = reactive({})
+      i.name = item.name;
+      i.type = item.type;
+      i.time = item.createTime
+      i.id = item.id
+      seachRes.push(i);
+    }
+    if (item.children && item.children.length > 0) {
+      for (let child of item.children) {
+        if (child.name.indexOf(searchInput.value) !== -1) {
+          let j = reactive({})
+          j.name = child.name;
+          j.type = child.type;
+          j.time = child.createTime
+          j.fname = child.fname
+          j.fid = item.id
+          j.id = child.id
+          seachRes.push(j);
+        }
+      }
+    }
+  }
+  // console.log(seachRes)
+
+}
 const CancelAdd = function () {
   formRef.value.resetFields();
+  form.desc = ""
   drawer1.value = false;
 }
 //添加note或者page
@@ -130,7 +242,7 @@ const addNote = function () {
     if (form.type === "note") {
       const nid = nanoid(8)
       const note = {
-        id: UserStore.getters.getUser.name + nid,
+        id: UserStore.getters.getUser.id + nid,
         name: form.name,
         userId: UserStore.getters.getUser.id,
         type: "note",
@@ -147,9 +259,10 @@ const addNote = function () {
       const pid = nanoid(8)
       console.log(UserStore.getters.getUser)
       const page = {
-        id: UserStore.getters.getUser.name + pid,
+        id: UserStore.getters.getUser.id + pid,
         name: form.name,
         userId: UserStore.getters.getUser.id,
+        info: form.desc,
         type: "page",
         fname: "",
         createTime: Date.now(),
@@ -163,6 +276,7 @@ const addNote = function () {
     }
   }
   formRef.value.resetFields();
+  form.desc = ""
   drawer1.value = false;
 }
 const MenuRouter = function (noteName) {
@@ -170,7 +284,7 @@ const MenuRouter = function (noteName) {
   if (noteName !== lastNodeName) {
     localStorage.setItem("currentNote", noteName)
     NoteStore.commit("saveCurrentNoteByName", noteName)
-    NoteStore.commit("saveCurrentView", new Object())
+    NoteStore.commit("saveCurrentView", {})
     const nid = NoteStore.getters.getCurrenNote.id
     console.log("当前note", NoteStore.getters.getCurrenNote)
     router.push({
@@ -184,15 +298,14 @@ const PageRouter = function (pageName) {
   if (pageName !== lastNodeName) {
     localStorage.setItem("currentNote", pageName)
     NoteStore.commit("saveCurrentNoteByName", pageName)
-    NoteStore.commit("saveLastViewId", lastNodeName);
     const pid = NoteStore.getters.getCurrenNote.id
+    NoteStore.commit("saveLastViewId", pid);
     console.log("当前note", NoteStore.getters.getCurrenNote)
     router.push({
       name: pid,
     });
   }
 }
-
 onMounted(() => {
   //只点击带孩子的note进行的路由跳转
   Mitt.on("MenuRouter", MenuRouter)
@@ -205,6 +318,22 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.deepInput {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: transparent;
+  box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset !important;
+  cursor: default;
+  border: none;
+}
+
+.searchDialog {
+  :deep(.el-dialog) {
+    border-radius: 10px 10px 10px 10px !important;
+  }
+}
+
 .view_drawer_contrainer {
   position: relative;
 

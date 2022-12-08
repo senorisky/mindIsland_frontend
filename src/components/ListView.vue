@@ -94,7 +94,7 @@
   </div>
   <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
     <span>
-      You are deleting a list, please confirm. This is an operation that cannot be undone!!
+      你正在删除一个动态列表，这是一个不可撤销的操作!!
     </span>
     <template #footer>
       <span class="dialog-footer">
@@ -174,7 +174,7 @@ const loading = computed({
 })
 const lastvid = computed({
   get() {
-    return NoteStore.getters.getLastViewId;
+    return NoteStore.getters.getCurrentView.id;
   }
 })
 const DialogConfirm = function (index) {
@@ -273,6 +273,10 @@ const askData = function () {
   Axios.get("/elist/getEList", {
     params: {
       viewId: vid
+    },
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
     }
   }).then((res) => {
     if (res.code === 200) {
@@ -303,11 +307,17 @@ onMounted(() => {
   if (listData.value === undefined) {
     askData()
   }
-  watch(lastvid, (newValue,old) => {
+  watch(lastvid, (newValue, old) => {
     console.log("old vid", old)
     console.log("new value", newValue)
     if (newValue !== old && listData.value !== undefined) {
-      askData()
+      const tmp = NoteStore.getters.getCurrenNote;
+      for (let i of tmp.children) {
+        console.log(i)
+        if (i.id === newValue && i.component === "ListView") {
+          askData()
+        }
+      }
     }
   })
 })

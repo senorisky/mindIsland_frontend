@@ -1,6 +1,7 @@
 <template>
   <div style="display: flex;flex-direction: row;align-items: end">
     <el-upload
+        v-show="(picNotNull||show)"
         style="align-items: start"
         class="avatar-uploader"
         action="#"
@@ -13,14 +14,14 @@
         <Plus/>
       </el-icon>
     </el-upload>
-    <el-button v-if="show" size="small" :icon="Delete"/>
+    <el-button v-show="show" size="small" @click="deletePageComponent" :icon="Delete"/>
   </div>
 </template>
 
 <script setup>
 // 图片上传成功的操作
 import {ElNotification} from "element-plus";
-import {h, inject, onMounted, watch} from "vue";
+import {computed, h, inject, onMounted, watch} from "vue";
 import {Plus, Delete} from '@element-plus/icons-vue'
 // import Mitt from "@/EventBus/mitt";
 import {reactive} from "vue";
@@ -47,15 +48,23 @@ const props = defineProps({
 const picture = reactive({
   data: props.data.text,
 })
+const picNotNull = computed({
+  get() {
+    return picture.data !== undefined || picture.data !== "";
+  }
+})
 const show = inject("show")
 const savePic = function () {
   console.log("内容保存")
   const pic = {
-    text: picture.data,
+    text: picture.data,//图片的请求路径
     index: props.id
   }
   if (picture.data !== undefined)
     Mitt.emit("saveContent", pic);
+}
+const deletePageComponent = function () {
+  Mitt.emit("deletePageItem", props.id)
 }
 // 图片上传前的判断
 const beforeAvatarUpload = function (file) {
@@ -146,8 +155,8 @@ onMounted(() => {
   border: 1px dashed var(--el-border-color);
   border-radius: 6px;
   cursor: pointer;
-  justify-content: start;
-  align-items: start;
+  justify-content: flex-start;
+  align-items: flex-start;
   position: relative;
   overflow: hidden;
   transition: var(--el-transition-duration-fast);

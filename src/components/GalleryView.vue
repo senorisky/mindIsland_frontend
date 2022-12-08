@@ -71,7 +71,7 @@ const galleryInfo = reactive({
 })
 const lastvid = computed({
   get() {
-    return NoteStore.getters.getLastViewId;
+    return NoteStore.getters.getCurrentView.id;
   }
 })
 const beforeUploadHandle = function (file) {
@@ -112,14 +112,14 @@ const data = reactive({
 })
 const askData = function () {
   const vid = NoteStore.getters.getCurrentView.id;
-  console.log("askGallery")
+  console.log("askGallery", vid)
   Axios.get("/gallery/getAllpic", {
     params: {
       viewId: vid
     }
   }).then((res) => {
     if (res.code === 200) {
-      console.log("ask for elist", res);
+      console.log("ask for gallery", res);
       if (res.data.gallery.datas !== null)
         pictureList.value = res.data.gallery.datas;
       galleryInfo.id = res.data.gallery.id
@@ -142,16 +142,24 @@ onMounted(() => {
     console.log("old vid", old)
     console.log("new value", newValue)
     if (newValue !== old && pictureList.value !== undefined) {
-      askData()
+      const tmp = NoteStore.getters.getCurrenNote;
+      for (let i of tmp.children) {
+        console.log(i)
+        if (i.id === newValue && i.component === "GalleryView") {
+          askData()
+        }
+      }
     }
   })
 })
 const UpLoadOnePic = function (item) {
   const config = {
     headers: {
-      'Content-Type': 'multipart/form-data'
+      'Content-Type': 'multipart/form-data',
+      'lm-token': localStorage.getItem("token")
     }
   }
+  console.log("uploadPic", galleryInfo.viewId)
   let formData = new FormData()
   formData.append('file', item.file)
   formData.append('userId', UserStore.getters.getUser.id)

@@ -6,13 +6,13 @@
       <div class="list" v-for="(item,index) in listData.value" :key="index">
         <el-table :data="item.items" max-height="300px"
                   :cell-style="ItemStyle" stripe>
-          <el-table-column style="width: 400px" prop="name" :label="item.colum">
+          <el-table-column style="width: 400px" :label="item.colum">
             <template #default="scope">
               <div class="singleList_Item">
                 <div class="Item_info" @click="ItemDetail(scope.$index, scope.row)">
                   <h2 class="deepInput" readonly v-text="scope.row.name"></h2>
                   <input style="width: 400px; "
-                         class="deepInput" readonly v-model="scope.row.des"/>
+                            class="deepInput" disabled v-model="scope.row.des"/>
                 </div>
                 <el-button
                     size="small"
@@ -206,10 +206,16 @@ const submitUpLoad = function (item) {
   }
   console.log("submitCard", form)
   console.log("addItemWithResource", tmp)
+  tmp.datas[form.index].items.push({
+    name: form.name,
+    date: form.date,
+    des: form.desc
+  })
   const len = tmp.datas[form.index].items.length;
   const config = {
     headers: {
-      'Content-Type': 'multipart/form-data'
+      'Content-Type': 'multipart/form-data',
+      'lm-token': localStorage.getItem("token")
     }
   }
   let formData = new FormData()
@@ -226,12 +232,11 @@ const submitUpLoad = function (item) {
       form.desc = "";
       formRef.value.resetFields();
       drawer1.value = false;
-    } else {
-      ElNotification({
-        title: '提示',
-        message: h('i', {style: 'color: teal'}, res.msg),
-      })
     }
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, res.msg),
+    })
   }).catch(err => {
     console.log(err)
   })
@@ -295,7 +300,7 @@ const listInfo = reactive({
 })
 const lastvid = computed({
   get() {
-    return NoteStore.getters.getLastViewId;
+    return NoteStore.getters.getCurrentView.id;
   }
 })
 const askData = function () {
@@ -304,6 +309,10 @@ const askData = function () {
   Axios.get("/elist/getEList", {
     params: {
       viewId: vid
+    },
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
     }
   }).then((res) => {
     if (res.code === 200) {
@@ -337,7 +346,12 @@ onMounted(() => {
     console.log("old vid", old)
     console.log("new value", newValue)
     if (newValue !== old && listData.value !== undefined) {
-      askData()
+      const tmp = NoteStore.getters.getCurrenNote;
+      for (let i of tmp.children) {
+        if (i.id === newValue && i.component === "sListView") {
+          askData()
+        }
+      }
     }
   })
 })
@@ -409,6 +423,7 @@ onUnmounted(function () {
 
 .singleList_Item {
   display: flex;
+
 }
 
 .drawer1 {

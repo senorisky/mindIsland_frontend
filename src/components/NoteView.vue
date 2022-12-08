@@ -8,7 +8,14 @@
     <div class="deepInput">
       <el-input v-model="noteName" class="PageName" readonly placeholder="Name"></el-input>
       <el-input v-model="noteTime" class="PageTime" readonly placeholder="time"></el-input>
-      <el-input v-model="noteInfo" class="PageProfile" type="text" placeholder="profile"></el-input>
+      <div style="display: flex; flex-direction: row;">
+        <el-input v-model="noteInfo" class="PageProfile" type="text" placeholder="profile"
+        ></el-input>
+        <el-button size="default" @click="NoteDelete" type="danger">
+          Delete
+        </el-button>
+      </div>
+
       <el-divider style="margin-bottom: 15px !important;"/>
     </div>
   </div>
@@ -34,7 +41,7 @@
   <span class="border"></span>
   <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
     <span>
-      You are deleting a view, please confirm. This is an operation that cannot be undone!!
+      你正在删除一份View包括其上的所有资源，这是一个不可撤销的操作!!
     </span>
     <template #footer>
       <span class="dialog-footer">
@@ -91,7 +98,22 @@
       </el-row>
     </el-drawer>
   </div>
-
+  <el-dialog v-model="centerDialogVisible2" title="Warning" width="30%" center>
+    <p>
+      你正在删除一份Note包括其上所有的View和资源!!
+    </p>
+    <p>
+      这是一个不可撤销的操作！！
+    </p>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="centerDialogVisible2 = false">Cancel</el-button>
+        <el-button type="primary" @click="deletePage">
+          Confirm
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup name="NoteView">
@@ -104,6 +126,7 @@ import router from "@/router";
 
 const v_name = ref("");
 const centerDialogVisible = ref(false)
+const centerDialogVisible2 = ref(false)
 const dtag = ref();
 const dtagindex = ref();
 const DialogConfirm = function (tag, index) {
@@ -114,7 +137,37 @@ const DialogConfirm = function (tag, index) {
 }
 const drawer = ref(false)
 const direction = ref('rtl')
-
+const noteName = computed({
+  get() {
+    return NoteStore.getters.getCurrenNote.name;
+  }, set(value) {
+    NoteStore.dispatch("changeNoteName", value)
+  }
+})
+const noteTime = computed({
+  get() {
+    const timeStamp = NoteStore.getters.getCurrenNote.createTime;
+    return formatTime(timeStamp);
+  }
+})
+const noteInfo = computed({
+  get() {
+    return NoteStore.getters.getCurrenNote.info;
+  }, set(value) {
+    NoteStore.dispatch("changeNoteInfo", value)
+  }
+})
+const NoteDelete = function () {
+  centerDialogVisible2.value = true
+}
+const deletePage = function () {
+  const data = {
+    noteId: NoteStore.getters.getCurrenNote.id,
+    name: noteName,
+  }
+  NoteStore.dispatch("deleteNote", data)
+  centerDialogVisible2.value = false;
+}
 const handleDelete = function () {
   const data = {
     view: dtag.value,
@@ -227,26 +280,7 @@ const Viewdetail = function (tag) {
     })
   }
 }
-const noteName = computed({
-  get() {
-    return NoteStore.getters.getCurrenNote.name;
-  }, set(value) {
-    NoteStore.dispatch("changeNoteName", value)
-  }
-})
-const noteTime = computed({
-  get() {
-    const timeStamp = NoteStore.getters.getCurrenNote.createTime;
-    return formatTime(timeStamp);
-  }
-})
-const noteInfo = computed({
-  get() {
-    return NoteStore.getters.getCurrenNote.info;
-  }, set(value) {
-    NoteStore.dispatch("changeNoteInfo", value)
-  }
-})
+
 
 // let views = reactive([]);
 onMounted(() => {

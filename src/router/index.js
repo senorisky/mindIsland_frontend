@@ -35,6 +35,12 @@ const router = createRouter({
 
 //全局路由守卫 前置  初始和每一次路由跳转的时候进行跳转  next放行
 router.beforeEach(async (to, from, next) => {
+    const token = localStorage.getItem("token");
+    if ((token === undefined || token === null) && (to.path !== "/")) {
+        to.path = "/"
+        next()
+    }
+    console.log("token", token)
     console.log("跳转到", to)
     console.log("from", from.path)
     //处理刷新界面动态路由丢失问题
@@ -45,18 +51,24 @@ router.beforeEach(async (to, from, next) => {
         next();
     }//登录进主页时候，直接跳转（不是动态页面）
     else if (user.name !== null) {
+        if (token === undefined || token === null) {
+            return false;
+        }
         console.log("正常路由")
         console.log(JSON.parse(localStorage.getItem("menuData")))
         next()
     } else if (user.name === null) {
+        if (token === undefined || token === null) {
+            return false;
+        }
         //从localStorage中获取菜单树。然后重新加载路由
         let menuData = [];
         menuData = JSON.parse(localStorage.getItem("menuData"));
         console.log(localStorage)
         console.log(menuData)
-        // await NoteStore.dispatch("AskMenuData")
+        // 加载动态的路由
         for (let father of menuData) {
-            // console.log(father.name)
+            // 父级路由
             if (father.type === "note") {
                 router.addRoute("space", {
                     path: "/space/" + father.id,
@@ -75,7 +87,7 @@ router.beforeEach(async (to, from, next) => {
                     component: () => import(`../components/${father.component}`)
                 })
             }
-            //
+            //子级路由
             if (father.children && father.children.length) {
                 for (let child of father.children) {
                     // console.log(child.id, father.name)
@@ -105,6 +117,9 @@ router.beforeEach(async (to, from, next) => {
         console.log("路由动态加载了数据")
         next({...to, replace: true})
     } else {
+        if (token === undefined || token === null) {
+            return false;
+        }
         console.log("正常路由")
         next()
     }

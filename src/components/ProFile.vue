@@ -46,11 +46,11 @@
 </template>
 
 <script setup name="Profile">
-import {computed, onBeforeMount, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import NoteStore from "../store/index"
 
 let noteNotNULL = ref(false)
-onBeforeMount(() => {
+onMounted(() => {
   const name = NoteStore.getters.getCurrenNote.name
   console.log("profile", name)
   if (name !== undefined) {
@@ -59,7 +59,7 @@ onBeforeMount(() => {
   console.log(noteNotNULL)
 })
 const ToViewDetail = function (item) {
-  console.log("profileRouter",item)
+  console.log("profileRouter", item)
   // router.push()
 }
 const listData = computed({
@@ -73,7 +73,7 @@ const listData = computed({
 <style lang="scss" scoped>
 .block {
   display: flex;
-  font-family: "HGHUATI_CNKI",serif;
+  font-family: "HGHUATI_CNKI", serif;
 }
 
 li {

@@ -1,14 +1,15 @@
 <template>
   <!--  二级标题  -->
   <div>
-    <el-input v-model="h2.data" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH2"
+    <el-input v-show="(textNotNull||show)"
+              v-model="h2.data" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH2"
               placeholder="二级标题">
     </el-input>
   </div>
 </template>
 
 <script setup name="HeadTwo">
-import {reactive} from "vue";
+import {computed, inject, reactive} from "vue";
 
 import Mitt from "@/EventBus/mitt";
 
@@ -17,6 +18,12 @@ const props = defineProps({
   data: Object,
   id: Number
 })
+const textNotNull = computed({
+  get() {
+    return h2.data !== undefined && h2.data !== "" && h2.data !== null;
+  }
+})
+const show = inject("show")
 const deletePageComponent = function () {
   if (h2.data === "" || h2.data === undefined) {
     console.log("h2 empty")

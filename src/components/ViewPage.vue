@@ -9,9 +9,15 @@
                         class="PageTime"
                         placeholder="time"></el-date-picker>
         <div style="display: flex;flex-direction: row;align-items: end">
-          <el-input class="PageProfile" type="text" placeholder="profile"></el-input>
+          <el-input class="PageProfile" type="textarea"
+                    placeholder="关于这篇文章简短的介绍" v-model="pageInfo.info" :onblur="saveNoteInfo"
+                    style="width: 800px"
+                    v-show="(textNotNull||showMenu)"></el-input>
           <el-button v-if="showMenu" size="default" @click="handlePrint" :loading="loading">
             {{ text }}
+          </el-button>
+          <el-button v-if="showMenu" size="default" @click="NoteDelete" type="danger" :loading="loading">
+            Delete
           </el-button>
           <el-button size="default" ref="printBtn" v-show="false" v-print="pdfFunc">
           </el-button>
@@ -23,7 +29,7 @@
     <div class="PageContent">
       <component v-for="(item,index) in (pageData.value)" :is="item.name" :key="index"
                  :data=item :id=index :hide="showMenu" style="margin-top: 7px"></component>
-      <div style="display: flex; align-items: center" v-if="showMenu">
+      <div style="display: flex; align-items: center;margin-bottom: 20px" v-if="showMenu">
 
         <el-popover ref="popover" placement="right" :width="60" trigger="click">
           <template #reference>
@@ -41,10 +47,26 @@
       <div class="nameSign" v-if="!showMenu">{{ UserStore.getters.getUser.name }}</div>
     </div>
   </div>
+  <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
+    <p>
+      你正在删除一篇文章!!
+    </p>
+    <p>
+      这是一个不可撤销的操作!!
+    </p>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="centerDialogVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="deletePage">
+          Confirm
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script name="ViewPage">
-import {onMounted, onUnmounted, provide, reactive, ref, watch} from "vue";
+import {computed, onMounted, onUnmounted, provide, reactive, ref, watch} from "vue";
 import HeadTwo from "@/components/HeadTwo"
 import HeadOne from "@/components/HeadOne"
 import HeadThree from "@/components/HeadThree"
@@ -72,19 +94,31 @@ export default {
   setup() {
     const loading = ref()
     const text = ref("PDF");
+
     const tabMenu = ref(false)
+    const centerDialogVisible = ref(false)
     const showWaterMark = ref(true)
     const showMenu = ref(true)
     provide("show", showMenu);
     const newInput = ref("")
-    const lastNoteName = ref()
+    const lastNoteName = computed({
+      get() {
+        return NoteStore.getters.getLastViewId;
+      }
+    })
     const watermarker = ref("")
     const printBtn = ref(null)
+    const textNotNull = computed({
+      get() {
+        return pageInfo.info !== undefined && pageInfo.info !== null && pageInfo.info !== "";
+      }
+    })
     const pageInfo = reactive({
       noteId: "",
       imgPath: "",
       pageName: "",
-      pageTime: ""
+      pageTime: "",
+      info: ""
     })
     const pageData = reactive([])
     const pdfFunc = reactive({
@@ -96,6 +130,18 @@ export default {
         console.log(showWaterMark.value)
       },
     })
+    const NoteDelete = function () {
+      centerDialogVisible.value = true;
+    }
+    const deletePage = function () {
+      const data = {
+        noteId: pageInfo.noteId,
+        name: pageInfo.pageName,
+      }
+      console.log("deletepage", data)
+      NoteStore.dispatch("deleteNote", data)
+      centerDialogVisible.value = false
+    }
     const handlePrint = function () {
       console.log("打印前")
       // showWaterMark.value = true
@@ -103,7 +149,27 @@ export default {
       // window.print();
       setTimeout(function () {
         printBtn.value.$el.click()
-      }, 500);
+      }, 50);
+    }
+    const saveNoteInfo = function () {
+      Axios.get("/note/saveNoteInfo", {
+        params: {
+          noteId: pageInfo.noteId,
+          name: pageInfo.pageName,
+          profile: pageInfo.info
+        },
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'lm-token': localStorage.getItem("token")
+        }
+      }).then((res) => {
+        console.log("savePage", res)
+        if (res.code === 200) {
+          console.log("savePageSuccess", res.data)
+          pageInfo.info = res.data.page.info;
+          pageInfo.pageName = res.data.page.name;
+        }
+      })
     }
     const getBase64 = function (base64) {
       return 'data:image/png;base64,' + base64
@@ -181,10 +247,15 @@ export default {
         params: {
           noteId: pageInfo.noteId,
           index
+        },
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'lm-token': localStorage.getItem("token")
         }
       }).then((res) => {
         console.log("删除page元素", res)
         if (res.code === 200) {
+
           pageData.value = res.data.page.datas
         }
       })
@@ -198,6 +269,10 @@ export default {
           index,
           text: data.text,
           noteId: pageInfo.noteId
+        },
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'lm-token': localStorage.getItem("token")
         }
       }).then((res) => {
         console.log("savePage", res)
@@ -214,6 +289,10 @@ export default {
       Axios.get("/page/getPageData", {
         params: {
           noteId: pid
+        },
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'lm-token': localStorage.getItem("token")
         }
       }).then((res) => {
         console.log("askPage", res)
@@ -225,6 +304,7 @@ export default {
           pageInfo.imgPath = res.data.page.imgPath;
           pageInfo.pageName = NoteStore.getters.getCurrenNote.name;
           pageInfo.pageTime = NoteStore.getters.getCurrenNote.createTime;
+          pageInfo.info = NoteStore.getters.getCurrenNote.info;
         }
       })
     }
@@ -251,18 +331,18 @@ export default {
     })
     return {
       tabMenu,
-      newInput,
+      newInput, textNotNull,
       loading, showMenu,
       showWaterMark,
       pageData, pageInfo,
       pdfFunc, printBtn,
       text, UserStore,
-      watermarker,
-      poverDismiss,
+      watermarker, centerDialogVisible,
+      poverDismiss, saveNoteInfo,
       handlePrint, getBase64,
       addH1, addH3,
       addH2, addTextArea,
-      addPicArea,
+      addPicArea, NoteDelete, deletePage
     }
   }
 }
@@ -303,6 +383,7 @@ export default {
   :deep(.el-input__wrapper) {
     box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
     cursor: default;
+    height: auto;
 
     .el-input__inner {
       cursor: default !important;
@@ -310,12 +391,14 @@ export default {
   }
 }
 
-.inputDeep {
+.PageProfile {
   :deep(.el-textarea__inner) {
     box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
     resize: none;
     cursor: default;
+    font-size: 17px !important;
   }
+
 }
 </style>
 <style media="print">

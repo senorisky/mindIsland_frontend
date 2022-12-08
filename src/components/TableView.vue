@@ -1,6 +1,7 @@
 <template>
   <div style="display: flex" v-loading="loading.value">
     <el-table :data="tableData.value" max-height="350"
+              :lazy="true"
               style="width: 100%" stripe ref="myTable" align="left"
               table-layout="fixed">
       <!-- 动态列 -->
@@ -135,7 +136,7 @@ const tableInfo = reactive({
 })
 const lastvid = computed({
   get() {
-    return NoteStore.getters.getLastViewId;
+    return NoteStore.getters.getCurrentView.id;
   }
 })
 const loading = computed({
@@ -159,6 +160,10 @@ const deleteColumn = function (item) {
     params: {
       name: item,
       viewId: tableInfo.viewId
+    },
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
     }
   }).then((res) => {
     if (res.code === 200) {
@@ -182,6 +187,10 @@ const deleteRow = function (index) {
     params: {
       index,
       viewId: tableInfo.viewId
+    },
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
     }
   }).then(((res) => {
     console.log("deleteTableItem", res)
@@ -203,6 +212,10 @@ const addTableItem = function () {
   Axios.get("/etable/addTableItem", {
     params: {
       viewId: tableInfo.viewId
+    },
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
     }
   }).then((res) => {
     console.log("addTableItem", res)
@@ -227,6 +240,10 @@ const askData = function () {
   Axios.get("/etable/getTable", {
     params: {
       viewId: vid
+    },
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
     }
   }).then((res) => {
     console.log("读取tabledata", res)
@@ -248,11 +265,16 @@ onMounted(() => {
   if (tableData.value === undefined) {
     askData()
   }
-  watch(lastvid, (newValue,old) => {
+  watch(lastvid, (newValue, old) => {
     console.log("old vid", old)
     console.log("new value", newValue)
     if (newValue !== old && tableData.value !== undefined) {
-      askData()
+      const tmp = NoteStore.getters.getCurrenNote;
+      for (let i of tmp.children) {
+        if (i.id === newValue && i.component === "TableView") {
+          askData()
+        }
+      }
     }
   })
 })

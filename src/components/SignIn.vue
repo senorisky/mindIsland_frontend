@@ -43,7 +43,7 @@ import Axios from "@/utils/request";
 const user = reactive({
   userName: "",
   password: "lifemind123",
-  email: "zkuku253674@163.com",
+  email: "2271351202@qq.com",
   userId: ""
 })
 
@@ -96,7 +96,7 @@ const login = function () {
           const rowUsed = res.data.user
           console.log(rowUsed)
           UserStore.commit("saveUser", res.data.user)
-          UserStore.commit("saveToken",res.data.token);
+          UserStore.commit("saveToken", res.data.token);
           localStorage.setItem("user", JSON.stringify(rowUsed))
           localStorage.setItem("token", res.data.token)
           router.push('/space')

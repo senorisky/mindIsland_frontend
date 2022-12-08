@@ -2,9 +2,9 @@
 
   <div class="body">
     <div class="main">
-      <Switch></Switch>
-      <SignIn></SignIn>
       <SignUp></SignUp>
+      <SignIn></SignIn>
+      <Switch></Switch>
     </div>
   </div>
 </template>

@@ -1,14 +1,15 @@
 <template>
   <!--  三级标题  -->
   <div>
-    <el-input v-model="h3.data" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH3"
+    <el-input v-show="(textNotNull||show)"
+              v-model="h3.data" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH3"
               placeholder="三级标题">
     </el-input>
   </div>
 </template>
 
 <script setup name="HeadThree">
-import {reactive} from "vue";
+import {computed, inject, reactive} from "vue";
 import Mitt from "@/EventBus/mitt";
 
 // eslint-disable-next-line no-undef
@@ -16,6 +17,13 @@ const props = defineProps({
   data: Object,
   id: Number
 })
+const textNotNull = computed({
+  get() {
+    // console.log("textnull", (h3.data === undefined || h3.data === ""))
+    return h3.data !== undefined && h3.data !== "" && h3.data !== null;
+  }
+})
+const show = inject("show")
 const deletePageComponent = function () {
   if (h3.data === "" || h3.data === undefined) {
     console.log("h3 empty")

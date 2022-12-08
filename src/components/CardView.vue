@@ -4,7 +4,8 @@
       :direction="direction"
       :before-close="handleClose"
   >
-    <div style="display: flex ; margin-top: 0px !important;;flex-direction: column; justify-content: flex-start">
+    <div
+        style="display: flex ; margin-top: 0px !important;;flex-direction: column; justify-content: flex-start">
       <div class="card_head">
         <el-icon></el-icon>
         <h2 class="deepInput" style="text-align: left;text-indent: 12px;" v-text="data.name"></h2>
@@ -23,10 +24,10 @@
                       :src="data.url"
                       :poster="data.poster"
                       crossorigin="anonymous"
-                      playsinline="true"
-                      controls="true"
+                      :playsinline="true"
+                      :controls="true"
                       :volume="0.6"
-                      :height="223"
+                      :height="320"
                       :playback-rates="[0.7, 1.0, 1.5, 2.0]"
                       @mounted="handleMounted"
                       @ready="handleEvent($event)"
@@ -38,7 +39,7 @@
                       @playing="handleEvent($event)"
                       @canplay="handleEvent($event)"
                       @canplaythrough="handleEvent($event)"
-                      @timeupdate="handleEvent(player?.currentTime())"></video-player>
+                      @timeupdate="handleEvent(player?.currentTime())"/>
       </div>
     </div>
   </el-drawer>
@@ -47,8 +48,9 @@
 <script setup>
 
 import {computed, onMounted, ref, shallowRef} from 'vue'
-import { VideoPlayer } from '@videojs-player/vue'
+import {VideoPlayer} from '@videojs-player/vue'
 import Mitt from "@/EventBus/mitt";
+import 'video.js/dist/video-js.css'
 // eslint-disable-next-line no-undef
 const props = defineProps({
   drawer: Boolean,
@@ -91,7 +93,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .video-player {
-  width: 540px !important;
+  width: 520px;
 }
 
 .card_head:deep(.el-input__wrapper) {

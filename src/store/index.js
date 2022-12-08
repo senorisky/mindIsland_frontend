@@ -38,6 +38,10 @@ const UserStore = {
         },
         saveToken(state, token) {
             state.token = token;
+        },
+        resetData(state) {
+            state.user = {}
+            state.token = ""
         }
     },
     actions: {},
@@ -45,8 +49,8 @@ const UserStore = {
 const NoteStore = {
     state: {
         menuData: [],//数据结构  [{note....children[]},{note:.....children[]}....]
-        currentNote: new Object(),//{name:,id:,....children[]}
-        currentView: new Object(),
+        currentNote: {},//{name:,id:,....children[]}
+        currentView: {},
         lastViewId: ""
         //PageData[]
     },
@@ -57,9 +61,6 @@ const NoteStore = {
         getMenuData(state) {
             return state.menuData;
         },
-        getCurrentViewData(state) {
-            return state.currentViewData;
-        },
         getCurrentView(state) {
             return state.currentView;
         },
@@ -68,6 +69,13 @@ const NoteStore = {
         }
     },
     mutations: {
+
+        resetData(state) {
+            state.menuData = []
+            state.currentNote = {};
+            state.currentView = {};
+            state.lastViewId = "";
+        },
         saveCurrentNoteByName(state, noteName) {
             console.log("store", state.menuData)
             for (let index in state.menuData) {
@@ -79,7 +87,7 @@ const NoteStore = {
             }
         },
         saveCurrentNote(state, note) {
-            console.log("store", state.menuData)
+            // console.log("store", state.menuData)
             state.currentNote = note;
         },
         saveLastViewId(state, data) {
@@ -90,13 +98,21 @@ const NoteStore = {
             localStorage.setItem("currentView", JSON.stringify(view));
         },
         saveCurrentViewById(state, view_id) {
-            console.log("saveCvid", view_id)
             for (let index in state.currentNote.children) {
                 const child = state.currentNote.children[index];
                 if (child.id === view_id) {
                     state.currentView = child;
                     localStorage.setItem("currentView", JSON.stringify(state.currentView))
                     break;
+                }
+            }
+        },
+        saveCurrentNoteById(state, nid) {
+            for (let index in state.menuData) {
+                const note = state.menuData[index]
+                if (note.id === nid) {
+                    state.currentNote = note;
+                    localStorage.setItem("currentNote", JSON.stringify(note));
                 }
             }
         },
@@ -108,6 +124,7 @@ const NoteStore = {
         saveChild(state, data) {
             console.log(data.child)
             state.menuData[data.index].children.push(data.child)
+            state.currentNote = state.menuData[data.index]
             localStorage.setItem("menuData", JSON.stringify(state.menuData))
             console.log(state.menuData)
         },
@@ -150,51 +167,54 @@ const NoteStore = {
             }
         },
         addNote(context, note) {
-            context.commit("saveNote", note);
-            router.addRoute("space", {
-                path: "/space/" + note.name,
-                name: note.name,
-                component: () => import(`@/components/${note.component}`)
-            })
-            router.addRoute(note.name, {
-                path: "/space/" + note.name + "/Profile",
-                name: note.name + "Profile",
-                component: () => import(`../components/ProFile`)
-            })
             console.log(router.getRoutes());
             Axios.post("/note/addNote", note).then((res) => {
                 console.log("addNote", res);
                 if (res.code === 200) {
-                    context.commit("saveMenuData", res.data.notes);
+                    router.addRoute("space", {
+                        path: "/space/" + note.id,
+                        name: note.id,
+                        component: () => import(`@/components/${note.component}`)
+                    })
+                    router.addRoute(note.id, {
+                        path: "/space/" + note.id + "/Profile",
+                        name: note.id + "Profile",
+                        component: () => import(`../components/ProFile`)
+                    })
+                    context.commit("saveNote", note);
                 }
             })
         },
         addPage(context, page) {
-            router.addRoute("space", {
-                path: "/space/" + page.name,
-                name: page.name,
-                component: () => import(`../components/${page.component}`)
-            })
             console.log("addPage", UserStore.state.user)
             Axios.post("/note/addPage", page).then((res) => {
                 console.log("addPage", res);
                 if (res.code === 200) {
+                    router.addRoute("space", {
+                        path: "/space/" + page.id,
+                        name: page.id,
+                        component: () => import(`../components/${page.component}`)
+                    })
                     context.commit("savePage", page);
                 }
             })
         },
         changeNoteName(context, name) {
-            context.commit("saveNoteName", name);
             const note = context.state.currentNote
             Axios.post("note/saveNote", note).then((res) => {
                 console.log("change note name", res)
+                if (res.code === 200) {
+                    context.commit("saveNoteName", name);
+                }
             })
         },
         changeNoteInfo(context, value) {
-            context.commit("saveNoteInfo", value);
             const note = context.state.currentNote;
             Axios.post("note/saveNote", note).then((res) => {
                 console.log("save note info", res)
+                if (res.code === 200) {
+                    context.commit("saveNoteInfo", value);
+                }
             })
         },
         deleteView(context, data) {
@@ -204,19 +224,20 @@ const NoteStore = {
                     flag = true;
                 if (res.code === 200) {
                     console.log(res)
+                    //删除路由
+                    router.removeRoute(data.view.id)
                     const tmp = context.state.menuData
                     for (let n in tmp) {
                         if (tmp[n].id === data.view.noteId) {
                             console.log("删除view", data.index)
                             tmp[n].children.splice(data.index, 1)
                             context.commit("saveMenuData", tmp)
-                            context.commit("saveCurrentNote", tmp[n])
+                            context.commit("saveCurrentNoteById", tmp[n].id)
                         }
                     }
                     //如果删除的是当前的view  进行跳转
                     if (flag) {
-                        context.commit("saveCurrentView", new Object())
-                        context.commit("saveCurrentViewData", new Object())
+                        context.commit("saveCurrentView", {})
                         router.push({
                             name: context.state.currentNote.id + "Profile",
                         });
@@ -231,6 +252,40 @@ const NoteStore = {
                 console.log(error)
             })
         },
+        deleteNote(context, data) {
+            Axios.get("/note/deleteNote", {
+                params: {
+                    noteId: data.noteId,
+                },
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8',
+                    'lm-token': localStorage.getItem("token")
+                }
+            }).then((res) => {
+                console.log("deleteNote", res)
+                if (res.code === 200) {
+                    //删除路由
+                    for (let child of context.state.currentNote.children) {
+                        router.removeRoute(child.id)
+                    }
+                    router.removeRoute(data.noteId)
+                    //跳转至默认页
+                    const tmp = context.state.menuData
+                    for (let n in tmp) {
+                        if (tmp[n].id === data.noteId) {
+                            console.log("删除note", n)
+                            tmp.splice(n, 1)
+                            context.commit("saveMenuData", tmp)
+                            context.commit("saveCurrentNote", {})
+                            break;
+                        }
+                    }
+                    router.push({
+                        path: "/space/ProFile"
+                    })
+                }
+            })
+        }
     },
 }
 

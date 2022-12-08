@@ -31,23 +31,36 @@
             placeholder="Password"
             type="password"/>
       </el-form-item>
+      <el-form-item>
+        <el-input
+            style=" width: 230px;height: 40px;margin: 4px 0;
+    font-size: 13px;
+    letter-spacing: .15px;
+    border: none;
+    outline: none;"
+            placeholder="6位邮箱验证码"
+            v-model="checkcode"
+        />
+        <el-button :disabled="minute" plain type="primary" style="margin-left: 30px" @click="EmailCheck">点击获取
+          {{ num }}
+        </el-button>
+      </el-form-item>
       <el-button class="form__button button submit" @click="regist">SIGN UP</el-button>
     </el-form>
   </div>
 </template>
 <script setup>
 import Mitt from "@/EventBus/mitt";
-import {onMounted, onUnmounted, reactive, ref} from "vue";
-import router from "@/router";
-// import qs from "qs";
+import {h, onMounted, onUnmounted, reactive, ref} from "vue";
 import Axios from "@/utils/request";
 import {nanoid} from "nanoid";
+import {ElNotification} from "element-plus";
 //响应式数据
 let user = reactive({
   userId: "",
-  userName: "senorisky",
-  password: "lifemind123",
-  email: "zkuku253674@163.com",
+  userName: "",
+  password: "",
+  email: "",
   loginTime: "",
   createTime: ""
 })
@@ -60,32 +73,80 @@ const registRules = {
   password: [
     {required: true, message: 'please enter password', trigger: 'bluer'},
     {min: 6, max: 11, message: 'password must between 6 and 11', trigger: 'bluer'}
+  ],
+  email: [
+    {required: true, message: 'email is needed', trigger: 'bluer'}
   ]
 }
 //表单实例
 const registForm = ref()
+const minute = ref(false)
+const checkcode = ref("")
+const num = ref("")
 //注册逻辑
 const regist = () => {
   registForm.value.validate((valid) => {
     if (valid) {
+      if (!/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/.test(user.email)) {
+        ElNotification({
+          title: '提示',
+          message: h('i', {style: 'color: teal'}, "请输入正确的邮箱"),
+        })
+        return;
+      }
       user.userId = nanoid(8);
-      Axios.post('/user/register', user).then((res) => {
+      Axios.post('/user/register', {
+        user,
+        CheckCode: checkcode.value
+      }).then((res) => {
         console.log(res)
+        ElNotification({
+          title: '提示',
+          message: h('i', {style: 'color: teal'}, res.msg),
+        })
         if (res.data.code === 200) {
-
-          router.push('/register')
+          registForm.value.resetFields();
+          checkcode.value = ""
         }
       }).catch(function (error) {
         console.log(error);
       });
-
     }
   })
 }
-
+const EmailCheck = function () {
+  if (!/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/.test(user.email)) {
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, "请输入正确的邮箱"),
+    })
+  } else {
+    num.value = 60
+    minute.value = true
+    setInterval(() => {
+      num.value -= 1
+      if (num.value < 1) {
+        clearInterval(num.value)
+        minute.value = false
+        num.value = ""
+      }
+    }, 1000)
+    Axios.get("/user/emailCheck", {
+      params: {
+        email: user.email
+      }, headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+      }
+    }).then((res) => {
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, res.msg),
+      })
+    })
+  }
+}
 onMounted(() => {
   Mitt.on('change', () => {
-
     let aContainer = document.querySelector("#a-container")
     aContainer.classList.toggle("is-txl");
   })
