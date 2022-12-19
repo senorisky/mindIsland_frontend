@@ -116,10 +116,13 @@ const askData = function () {
   Axios.get("/gallery/getAllpic", {
     params: {
       viewId: vid
+    }, headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
     }
   }).then((res) => {
+    console.log("ask for gallery", res);
     if (res.code === 200) {
-      console.log("ask for gallery", res);
       if (res.data.gallery.datas !== null)
         pictureList.value = res.data.gallery.datas;
       galleryInfo.id = res.data.gallery.id
@@ -218,14 +221,11 @@ const handleDownload = function (file) {
     },
     responseType: 'blob'
   }).then((res) => {
-    // console.log(res)
-    // 封装 Blob ，创建 下载链接
     let blob = new Blob([res], {type: 'image/jpeg'});
     console.log(blob)
-    // 通过创建的blob创建下载的链接
+    // 通过创建下载的链接
     const href = window.URL.createObjectURL(blob);
     console.log(href)
-    // 创建 a 标签
     const link = document.createElement('a');
     // 设置a标签参数
     link.href = href;

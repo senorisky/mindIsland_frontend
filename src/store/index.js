@@ -89,6 +89,7 @@ const NoteStore = {
         saveCurrentNote(state, note) {
             // console.log("store", state.menuData)
             state.currentNote = note;
+            localStorage.setItem("currentNote", JSON.stringify(state.currentNote));
         },
         saveLastViewId(state, data) {
             state.lastViewId = data;
@@ -142,6 +143,7 @@ const NoteStore = {
         },
         saveNoteInfo(state, info) {
             state.currentNote.info = info;
+            localStorage.setItem("currentNote", JSON.stringify(state.currentNote));
             localStorage.setItem("menuData", JSON.stringify(state.menuData))
         }
     },
@@ -210,10 +212,12 @@ const NoteStore = {
         },
         changeNoteInfo(context, value) {
             const note = context.state.currentNote;
+            note.info = value;
             Axios.post("note/saveNote", note).then((res) => {
                 console.log("save note info", res)
                 if (res.code === 200) {
-                    context.commit("saveNoteInfo", value);
+                    console.log(res.data.note)
+                    context.commit("saveCurrentNote", res.data.note);
                 }
             })
         },

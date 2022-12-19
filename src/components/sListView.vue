@@ -12,7 +12,7 @@
                 <div class="Item_info" @click="ItemDetail(scope.$index, scope.row)">
                   <h2 class="deepInput" readonly v-text="scope.row.name"></h2>
                   <input style="width: 400px; "
-                            class="deepInput" disabled v-model="scope.row.des"/>
+                         class="deepInput" disabled v-model="scope.row.des"/>
                 </div>
                 <el-button
                     size="small"

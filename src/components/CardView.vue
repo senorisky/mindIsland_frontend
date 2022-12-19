@@ -27,6 +27,7 @@
                       :playsinline="true"
                       :controls="true"
                       :volume="0.6"
+
                       :height="320"
                       :playback-rates="[0.7, 1.0, 1.5, 2.0]"
                       @mounted="handleMounted"
@@ -51,6 +52,7 @@ import {computed, onMounted, ref, shallowRef} from 'vue'
 import {VideoPlayer} from '@videojs-player/vue'
 import Mitt from "@/EventBus/mitt";
 import 'video.js/dist/video-js.css'
+
 // eslint-disable-next-line no-undef
 const props = defineProps({
   drawer: Boolean,
@@ -77,7 +79,6 @@ const handleMounted = (payload) => {
   player.value = payload.player
   console.log('Basic player mounted', payload)
 }
-
 const handleEvent = (log) => {
   console.log('Basic player event', log)
 }

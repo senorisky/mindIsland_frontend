@@ -52,6 +52,7 @@
       </span>
     </template>
   </el-dialog>
+  <!-- view的组件 -->
   <div class="view-page">
     <RouterView></RouterView>
   </div>
@@ -152,6 +153,7 @@ const noteTime = computed({
 })
 const noteInfo = computed({
   get() {
+    console.log(NoteStore.getters.getCurrenNote)
     return NoteStore.getters.getCurrenNote.info;
   }, set(value) {
     NoteStore.dispatch("changeNoteInfo", value)

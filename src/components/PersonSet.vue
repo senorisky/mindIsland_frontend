@@ -99,12 +99,12 @@
   </div>
   <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
     <p>
-      You are deleting your account,this will delete all your records and resources!!
+      你正在删除账号，这将会删除所有的资源!!
     </p>
     <p>
-      Can Not Revoke!!
+      不可撤销!!
     </p>
-    <el-input v-model="passwd" placeholder="enter your password to confirm"></el-input>
+    <el-input v-model="passwd" type="password" placeholder="enter your password to confirm"></el-input>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="centerDialogVisible = false">Cancel</el-button>
@@ -221,15 +221,15 @@ const deleteUser = function () {
       console.log("注销成功", res)
       window.localStorage.clear()
       window.sessionStorage.clear()
-      window.clearCookie()
-      window.location.reload()
-      router.push("login")
-    } else {
-      ElNotification({
-        title: '提示',
-        message: h('i', {style: 'color: teal'}, res.msg),
-      })
+      UserStore.commit("resetData")
+      NoteStore.commit("resetData")
+      router.push({path: "/"})
     }
+    ElNotification({
+      title: '提示',
+      message: h('i', {style: 'color: teal'}, res.msg),
+    })
+
   }).catch(err => {
     console.log(err)
   })
@@ -339,10 +339,10 @@ onMounted(() => {
     margin-right: 20px;
   }
 
-  :deep( .el-drawer.rtl ) {
+  :deep( .el-drawer.rtl) {
     height: auto;
     margin-top: 100px;
-    margin-bottom: 200px;
+    margin-bottom: 130px;
   }
 
   :deep( .el-drawer ) {

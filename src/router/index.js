@@ -103,16 +103,12 @@ router.beforeEach(async (to, from, next) => {
         console.log("重新加载动态路由")
         //重新vuex
         console.log("to", to.name)
-        if (to.name === undefined) {
-            console.log("vuex cnote")
-            NoteStore.commit("saveCurrentNote", JSON.parse(localStorage.getItem("currentNote")))
-        }
+        console.log("note", JSON.parse(localStorage.getItem("currentNote")))
+        NoteStore.commit("saveCurrentNote", JSON.parse(localStorage.getItem("currentNote")))
         //恢复vuex数据
         UserStore.commit("saveUser", JSON.parse(localStorage.getItem("user")))
         UserStore.commit("saveToken", localStorage.getItem("token"))
-        // console.log("vuex menudata")
         NoteStore.commit("saveMenuData", menuData)
-        // console.log("vuex cview")
         NoteStore.commit("saveCurrentView", JSON.parse(localStorage.getItem("currentView")))
         console.log("路由动态加载了数据")
         next({...to, replace: true})

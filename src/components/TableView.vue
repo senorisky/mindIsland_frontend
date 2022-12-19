@@ -12,6 +12,7 @@
           :label="item"
           width="180"
       >
+        <!--  自定义表头-->
         <template #header>
           <div style="display: flex;justify-content:space-between;align-items:flex-end;">
             <span style="margin-left: 10px">{{ item }}</span>
@@ -252,11 +253,12 @@ const askData = function () {
       tableInfo.id = res.data.etable.id;
       tableInfo.viewId = res.data.etable.viewId;
       dynamicColumns.value = res.data.etable.colums
+    } else {
+      ElNotification({
+        title: '提示',
+        message: h('i', {style: 'color: teal'}, res.msg),
+      })
     }
-    ElNotification({
-      title: '提示',
-      message: h('i', {style: 'color: teal'}, res.msg),
-    })
   }).catch(function (error) {
     console.log("读取tabledata出错", error)
   })

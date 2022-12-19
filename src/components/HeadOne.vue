@@ -2,14 +2,15 @@
   <!-- 一级标题-->
   <div>
     <el-input v-show="(textNotNull||show)"
-              v-model="h1.data" class="deepInput" @keydown.delete="deletePageComponent" @blur="saveH1" type="text"
+              v-model="h1.text" class="deepInput" @keydown.delete="deletePageComponent"
+              @blur="saveH1" type="text"
               placeholder="一级标题">
     </el-input>
   </div>
 </template>
 
 <script setup name="HeadOne">
-import {computed, inject, onMounted, onUnmounted, reactive} from "vue";
+import {computed, inject, onMounted, toRef} from "vue";
 import Mitt from "@/EventBus/mitt";
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -20,35 +21,28 @@ const props = defineProps({
 const index = props.id
 const textNotNull = computed({
   get() {
-    return h1.data !== undefined && h1.data !== "" && h1.data !== null;
+    return h1.value.text !== undefined && h1.value.text !== "" && h1.value.text !== null;
   }
 })
 const show = inject("show")
 const deletePageComponent = function () {
-  if (h1.data === "" || h1.data === undefined) {
-    console.log("h1 empty")
+  if (h1.value.text === "" || h1.value.text === undefined) {
     Mitt.emit("deletePageItem", index)
-    h1.data = undefined;
+    h1.value.text = undefined;
   }
 }
-const h1 = reactive({
-  data: props.data.text
-})
+const h1 = toRef(props, "data");
 const saveH1 = function () {
-  console.log("内容保存")
   const h1t = {
-    text: h1.data,
+    text: h1.value.text,
     index
   }
-  if (h1.data !== undefined)
+  if (h1.value.text !== undefined)
     Mitt.emit("saveContent", h1t);
 }
 onMounted(() => {
   if (props.data.text === undefined)
-    h1.data = ""
-})
-onUnmounted(() => {
-  console.log("h1UnMounted")
+    h1.value.text = ""
 })
 </script>
 

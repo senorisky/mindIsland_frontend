@@ -2,7 +2,7 @@
   <!-- page的头 包括名字 日期 简介 横幅 -->
   <div id="page">
     <div class="deepInput">
-      <div style="height: 100px;width: 100px; background: #2c3e50;"></div>
+      <div style="height: 40px; "></div>
       <div style="display: flex; align-items: flex-start ;flex-direction: column">
         <el-input readonly v-model="pageInfo.pageName" class="PageName" placeholder="Name"></el-input>
         <el-date-picker readonly type="datetime" format="YYYY-MM-DD HH:mm:ss" v-model="pageInfo.pageTime"
@@ -81,6 +81,7 @@ import watermark from "@/utils/watermark"
 // 导入htmlToPdf.js
 
 export default {
+
   components: {
     HeadOne,
     HeadTwo,
@@ -120,7 +121,9 @@ export default {
       pageTime: "",
       info: ""
     })
-    const pageData = reactive([])
+
+    const pageData = reactive([
+    ])
     const pdfFunc = reactive({
       id: "page",
       popTitle: NoteStore.getters.getCurrenNote.name,
@@ -285,7 +288,6 @@ export default {
     const askData = function () {
       //axios 请求page内容
       const pid = NoteStore.getters.getCurrenNote.id
-      console.log("askPage", pid)
       Axios.get("/page/getPageData", {
         params: {
           noteId: pid
@@ -297,7 +299,6 @@ export default {
       }).then((res) => {
         console.log("askPage", res)
         if (res.code === 200) {
-          console.log("askPageDat", res.data)
           if (res.data.page.data !== null)
             pageData.value = res.data.page.datas;
           pageInfo.noteId = res.data.page.noteId;
@@ -319,7 +320,8 @@ export default {
       watch(lastNoteName, (newValue, old) => {
         console.log("old vid", old)
         console.log("new value", newValue)
-        if (newValue !== old && pageData.value !== undefined) {
+        const tmp = NoteStore.getters.getCurrenNote
+        if (pageData.value !== undefined && tmp.component === "ViewPage") {
           askData()
         }
       })

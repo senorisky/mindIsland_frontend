@@ -10,6 +10,7 @@
                     :cell-style="ItemStyle" stripe>
             <el-table-column class="list_tittle" prop="name" :label="item.colum"/>
             <el-table-column align="right">
+              <!--自定义表头-->
               <template #header>
                 <el-button
                     size="small"
@@ -18,6 +19,7 @@
                     :icon="Delete"
                 />
               </template>
+              <!--自定义表项 -->
               <template #default="scope">
                 <el-button size="small" @click="ItemDetail(scope.$index, scope.row)" :icon="Edit"
                 />

@@ -244,6 +244,7 @@ const addNote = function () {
       const note = {
         id: UserStore.getters.getUser.id + nid,
         name: form.name,
+        info:form.desc,
         userId: UserStore.getters.getUser.id,
         type: "note",
         fname: "",
