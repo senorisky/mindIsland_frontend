@@ -81,7 +81,6 @@ import watermark from "@/utils/watermark"
 // 导入htmlToPdf.js
 
 export default {
-
   components: {
     HeadOne,
     HeadTwo,

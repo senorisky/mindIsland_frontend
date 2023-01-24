@@ -126,6 +126,7 @@ const NoteStore = {
             console.log(data.child)
             state.menuData[data.index].children.push(data.child)
             state.currentNote = state.menuData[data.index]
+            localStorage.setItem("currentNote", JSON.stringify(state.currentNote));
             localStorage.setItem("menuData", JSON.stringify(state.menuData))
             console.log(state.menuData)
         },
@@ -153,7 +154,13 @@ const NoteStore = {
                 if (context.state.menuData[item].name === view.fname) {
                     console.log(router.getRoutes())
                     const father = context.state.menuData[item];
-                    Axios.post("/view/addView", view).then((res) => {
+                    const config = {
+                        headers: {
+                            'Content-Type': 'application/json;charset=utf-8',
+                            'lm-token': localStorage.getItem("token")
+                        }
+                    }
+                    Axios.post("/view/addView", view, config).then((res) => {
                         console.log("addView", res)
                         if (res.code == 200) {
                             context.commit("saveChild", {index: item, child: view})
@@ -170,7 +177,13 @@ const NoteStore = {
         },
         addNote(context, note) {
             console.log(router.getRoutes());
-            Axios.post("/note/addNote", note).then((res) => {
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8',
+                    'lm-token': localStorage.getItem("token")
+                }
+            }
+            Axios.post("/note/addNote", note, config).then((res) => {
                 console.log("addNote", res);
                 if (res.code === 200) {
                     router.addRoute("space", {
@@ -189,7 +202,13 @@ const NoteStore = {
         },
         addPage(context, page) {
             console.log("addPage", UserStore.state.user)
-            Axios.post("/note/addPage", page).then((res) => {
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8',
+                    'lm-token': localStorage.getItem("token")
+                }
+            }
+            Axios.post("/note/addPage", page, config).then((res) => {
                 console.log("addPage", res);
                 if (res.code === 200) {
                     router.addRoute("space", {
@@ -222,7 +241,13 @@ const NoteStore = {
             })
         },
         deleteView(context, data) {
-            Axios.post("/view/deleteView", data.view).then((res) => {
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8',
+                    'lm-token': localStorage.getItem("token")
+                }
+            }
+            Axios.post("/view/deleteView", data.view, config).then((res) => {
                 let flag = false;
                 if (data.view.id === context.state.currentView.id)
                     flag = true;

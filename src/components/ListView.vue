@@ -251,7 +251,12 @@ const addListColum = function () {
   }
   console.log("addlistColum", tmp)
   tmp.datas.push(list);
-  Axios.post("/elist/saveEList", {elist: tmp, url: ""}).then((res) => {
+  Axios.post("/elist/saveEList", {elist: tmp, url: ""}, {
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
+    }
+  }).then((res) => {
     if (res.code === 200) {
       console.log("listAddColum", res);
       listData.value = res.data.elist.datas;
@@ -337,7 +342,12 @@ const deletList = function (index) {
   }
   tmp.datas.splice(index, 1);
   console.log("deleteL", tmp.datas, index)
-  Axios.post("/elist/saveEList", {elist: tmp, url: ""}).then((res) => {
+  Axios.post("/elist/saveEList", {elist: tmp, url: ""}, {
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
+    }
+  }).then((res) => {
     if (res.code === 200) {
       console.log("listAddColum", res);
       listData.value = res.data.elist.datas;
@@ -375,6 +385,11 @@ const deleteItem = function (Lindex, index) {
     elist: tmp,
     url,
     poster
+  }, {
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
+    }
   }).then((res) => {
     if (res.code === 200) {
       console.log("deleteListItem", res);

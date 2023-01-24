@@ -1,11 +1,11 @@
 <template>
   <div></div>
-
 </template>
 
-<script setup name="PageView">
-
-
+<script>
+export default {
+  name: "ForgetView"
+}
 </script>
 
 <style scoped>

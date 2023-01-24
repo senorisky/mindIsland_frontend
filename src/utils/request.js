@@ -14,8 +14,10 @@ Axios.interceptors.request.use(req => {
     // 请求拦截处理
     // console.log('这里是请求拦截器，我拦截了请求', req);
     const token = req.headers.get("lm-token")
-    if (token !== undefined )
+    if (token !== undefined)
         return req;
+    else req.headers.put("lm-token", localStorage.getItem("token")
+    )
 }, err => {
     console.log('在发送请求时发生错误，错误为', err);
     //这里不能直接放回err,需要按照官方说明返回一个Promise

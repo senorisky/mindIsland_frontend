@@ -53,7 +53,6 @@ const saveH2 = function () {
   :deep(.el-input__wrapper) {
     box-shadow: 0 0 0 0px var(--el-input-border-color, var(--el-border-color)) inset;
     cursor: default;
-
     .el-input__inner {
       cursor: default !important;
       font-weight: 570 !important;

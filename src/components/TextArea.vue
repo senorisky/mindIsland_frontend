@@ -44,7 +44,6 @@ const saveTextc = function () {
 <style lang="scss" scoped>
 .el-textarea {
   font-size: 17px !important;
-
 }
 
 .inputDeep {

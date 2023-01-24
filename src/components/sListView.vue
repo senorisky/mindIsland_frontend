@@ -240,9 +240,11 @@ const submitUpLoad = function (item) {
   }).catch(err => {
     console.log(err)
   })
+  upList.value=0
   upLoadRef.value.clearFiles();
 }
 const addItem = function () {
+  console.log("addSlistItem")
   if (form.name === undefined) {
     ElNotification({
       title: '提示',
@@ -266,6 +268,11 @@ const addItem = function () {
     Axios.post("/elist/saveEList", {
       elist: tmp,
       url: ""
+    }, {
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        'lm-token': localStorage.getItem("token")
+      }
     }).then((res) => {
       if (res.code === 200) {
         console.log(res);
@@ -376,6 +383,11 @@ const deleteItem = function (Lindex, index) {
     elist: tmp,
     url,
     poster
+  }, {
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
+    }
   }).then((res) => {
     if (res.code === 200) {
       console.log("deleteListItem", res);

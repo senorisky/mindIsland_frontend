@@ -187,6 +187,9 @@ const handleRemove = function (file) {
       userId: UserStore.getters.getUser.id,
       viewId: galleryInfo.viewId,
       picName: file.name
+    }, headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
     }
   }).then((res) => {
     console.log(res)
@@ -217,7 +220,11 @@ const handleDownload = function (file) {
   Axios.get("/gallery/downSinglePic", {
     params: {
       userId: uid,
+      viewId: galleryInfo.viewId,
       name: file.name,
+    }, headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
     },
     responseType: 'blob'
   }).then((res) => {

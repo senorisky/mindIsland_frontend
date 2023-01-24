@@ -32,14 +32,12 @@
 <script setup>
 
 import Mitt from "@/EventBus/mitt";
-import {h, onMounted, onUnmounted, reactive, ref} from "vue";
+import { onMounted, onUnmounted, reactive, ref} from "vue";
 import router from "@/router";
 // eslint-disable-next-line no-unused-vars
-import qs from "qs";
 import UserStore from "../store/index"
 import NoteStore from "@/store";
 import Axios from "@/utils/request";
-import {ElNotification} from "element-plus";
 
 const user = reactive({
   userName: "",
@@ -92,10 +90,6 @@ const login = function () {
       console.log(user)
       Axios.post('/user/login', user).then((res) => {
         console.log(res)
-        ElNotification({
-          title: '提示',
-          message: h('i', {style: 'color: teal'}, res.msg),
-        })
         if (res.code === 200) {
           DynamicMenuRouter(res.data.menuData);
           const rowUsed = res.data.user

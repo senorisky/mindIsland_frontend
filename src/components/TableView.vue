@@ -25,7 +25,7 @@
         <!--可编辑表格-->
         <template #default="scope">
           <div class="ItemCell">
-            <el-input v-model="scope.row[scope.column.property]" placeholder="请输入内容"></el-input>
+            <el-input v-model="scope.row[scope.column.property]" placeholder="请输入内容" @blur="SaveTable"></el-input>
           </div>
         </template>
 
@@ -105,6 +105,10 @@ const addColumn = function () {
     params: {
       name: name.value,
       viewId: tableInfo.viewId
+    },
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
     }
   }).then((res) => {
     if (res.code === 200) {
@@ -153,7 +157,30 @@ const handleClose = (done) => {
 // eslint-disable-next-line no-unused-vars
 const propArr = reactive([]) // 生成dynamicColumns时的记录
 const dynamicColumns = reactive([])// 存放动态列
-//删除列
+
+const SaveTable = function () {
+  Axios.post("/etable/saveTable", {
+        id: tableInfo.id,
+        viewId: tableInfo.viewId,
+        colums: dynamicColumns.value,
+        datas: tableData.value
+      }, {
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'lm-token': localStorage.getItem("token")
+        }
+      }
+  ).then((res) => {
+    if (res.code === 200) {
+      tableData.value = res.data.etable.datas;
+      tableInfo.id = res.data.etable.id;
+      tableInfo.viewId = res.data.etable.viewId;
+      dynamicColumns.value = res.data.etable.colums;
+    }
+  }).catch(function (error) {
+    console.log(error)
+  })
+}//删除列
 const deleteColumn = function (item) {
   centerDialogVisible.value = false;
   // console.log("删除table列", item)
