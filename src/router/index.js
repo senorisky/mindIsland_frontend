@@ -5,11 +5,15 @@ import ProFile from "@/components/ProFile";
 import PersonSet from "@/components/PersonSet";
 import UserStore from "../store/index.js"
 import NoteStore from "@/store";
+import ForgetView from "@/views/ForgetView";
 // import {toRaw} from "vue";
 
 const routes = [
     {
         path: '/', name: 'login', component: PrepareView
+    },
+    {
+        path: '/forget', name: 'forget', component: ForgetView
     },
     {
         path: '/space', name: 'space', component: MainView,

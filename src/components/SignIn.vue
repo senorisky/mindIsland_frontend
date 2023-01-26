@@ -24,7 +24,7 @@
             placeholder="Password"
             type="password"/>
       </el-form-item>
-      <a class="form__link">Forgot your password?</a>
+      <a class="form__link" @click="forget">Forgot your password?</a>
       <el-button class="form__button button " @click="login">SIGN IN</el-button>
     </el-form>
   </div>
@@ -32,7 +32,7 @@
 <script setup>
 
 import Mitt from "@/EventBus/mitt";
-import { onMounted, onUnmounted, reactive, ref} from "vue";
+import {onMounted, onUnmounted, reactive, ref} from "vue";
 import router from "@/router";
 // eslint-disable-next-line no-unused-vars
 import UserStore from "../store/index"
@@ -45,7 +45,9 @@ const user = reactive({
   email: "2271351202@qq.com",
   userId: ""
 })
-
+const forget = function () {
+  router.push('/forget')
+}
 
 const DynamicMenuRouter = function (menuData) {
   //动态路由存在本地-----退出登录时候清空
