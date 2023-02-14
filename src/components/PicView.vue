@@ -21,7 +21,7 @@
 <script setup>
 // 图片上传成功的操作
 import {ElNotification} from "element-plus";
-import {computed, h, inject, onMounted, toRef, watch} from "vue";
+import {computed, inject, onMounted, toRef, watch} from "vue";
 import {Plus, Delete} from '@element-plus/icons-vue'
 // import Mitt from "@/EventBus/mitt";
 import UserStore from "@/store";
@@ -69,15 +69,17 @@ const beforeAvatarUpload = function (file) {
   const isLt3M = file.size / 1024 / 1024 / 1024 < 5;
   if (!isJPG && !isPNG) {
     ElNotification({
-      title: '提示',
-      message: h('i', {style: 'color: teal'}, "不支持此格式"),
+      title: 'Info',
+      message: "不支持此格式",
+      type: "warning"
     })
     return false;
   }
   if (!isLt3M) {
     ElNotification({
-      title: '提示',
-      message: h('i', {style: 'color: teal'}, "图片大小不能超过5MB"),
+      title: 'Info',
+      message: "图片大小不能超过5MB",
+      type: "warning"
     })
     return false;
   }
@@ -101,8 +103,9 @@ const UpLoadOnePic = function (item) {
         picture.value.text = res.data.url;
       } else {
         ElNotification({
-          title: '提示',
-          message: h('i', {style: 'color: teal'}, res.msg),
+          title: 'Info',
+          message: res.msg,
+          type: "error"
         })
       }
     }).catch(err => {
@@ -115,8 +118,9 @@ const UpLoadOnePic = function (item) {
         savePic()
       } else {
         ElNotification({
-          title: '提示',
-          message: h('i', {style: 'color: teal'}, res.msg),
+          title: 'Info',
+          message: res.msg,
+          type: "error"
         })
       }
     }).catch(err => {

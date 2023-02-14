@@ -51,9 +51,10 @@
 </template>
 <script setup>
 import Mitt from "@/EventBus/mitt";
-import {h, onMounted, onUnmounted, reactive, ref} from "vue";
+import {onMounted, onUnmounted, reactive, ref} from "vue";
 import Axios from "@/utils/request";
 import {nanoid} from "nanoid";
+import pencode from "@/utils/encode"
 import {ElNotification} from "element-plus";
 //响应式数据
 let user = reactive({
@@ -83,31 +84,36 @@ const registForm = ref()
 const minute = ref(false)
 const checkcode = ref("")
 const num = ref("")
+const emialTimer = ref(null)
 //注册逻辑
 const regist = () => {
   registForm.value.validate((valid) => {
     if (valid) {
       if (!/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/.test(user.email)) {
         ElNotification({
-          title: '提示',
-          message: h('i', {style: 'color: teal'}, "请输入正确的邮箱"),
+          title: 'Info',
+          message: "请输入正确的邮箱",
+          type: "error"
         })
         return;
       }
       user.userId = nanoid(8);
+      user.password = pencode.pencode(user.password)
       Axios.post('/user/register', {
         user,
         CheckCode: checkcode.value
       }).then((res) => {
-        console.log(res)
-        ElNotification({
-          title: '提示',
-          message: h('i', {style: 'color: teal'}, res.msg),
-        })
+        let mtype = "error"
         if (res.data.code === 200) {
+          mtype = "success"
           registForm.value.resetFields();
           checkcode.value = ""
         }
+        ElNotification({
+          title: "Info",
+          message: res.msg,
+          type: mtype
+        })
       }).catch(function (error) {
         console.log(error);
       });
@@ -117,13 +123,14 @@ const regist = () => {
 const EmailCheck = function () {
   if (!/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/.test(user.email)) {
     ElNotification({
-      title: '提示',
-      message: h('i', {style: 'color: teal'}, "请输入正确的邮箱"),
+      title: 'Info',
+      message: "请输入正确的邮箱",
+      type: "error"
     })
   } else {
     num.value = 60
     minute.value = true
-    setInterval(() => {
+    emialTimer.value = setInterval(() => {
       num.value -= 1
       if (num.value < 1) {
         clearInterval(num.value)
@@ -138,10 +145,19 @@ const EmailCheck = function () {
         'Content-Type': 'application/json;charset=utf-8',
       }
     }).then((res) => {
-      ElNotification({
-        title: '提示',
-        message: h('i', {style: 'color: teal'}, res.msg),
-      })
+      if (res.code === 200) {
+        ElNotification({
+          title: "Info",
+          message: res.msg,
+          type: "success"
+        })
+      } else {
+        ElNotification({
+          title: "Info",
+          message: res.msg,
+          type: "error"
+        })
+      }
     })
   }
 }
@@ -152,6 +168,7 @@ onMounted(() => {
   })
 })
 onUnmounted(() => {
+  clearInterval(emialTimer.value)
   Mitt.off('change')
 })
 

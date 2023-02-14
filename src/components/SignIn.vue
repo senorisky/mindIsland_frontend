@@ -2,7 +2,7 @@
 <template>
   <div class="container b-container" id="b-container">
     <el-form ref="loginForm" :model="user" :rules="loginRules" class="form" id="b-form">
-      <h2 class="form_title title">Sign in to LifeMind</h2>
+      <h2 class="form_title title">Sign in to MindIsland</h2>
       <div class="form__icons">
         <img class="form__icon" src=" ">
         <img class="form__icon" src=" ">
@@ -32,17 +32,18 @@
 <script setup>
 
 import Mitt from "@/EventBus/mitt";
-import {onMounted, onUnmounted, reactive, ref} from "vue";
+import { onMounted, onUnmounted, reactive, ref} from "vue";
 import router from "@/router";
-// eslint-disable-next-line no-unused-vars
 import UserStore from "../store/index"
+import pencode from "@/utils/encode"
 import NoteStore from "@/store";
 import Axios from "@/utils/request";
+import {ElNotification} from "element-plus";
 
 const user = reactive({
   userName: "",
-  password: "lifemind123",
-  email: "2271351202@qq.com",
+  password: "",
+  email: "",
   userId: ""
 })
 const forget = function () {
@@ -89,9 +90,9 @@ const loginForm = ref()
 const login = function () {
   loginForm.value.validate((valid) => {
     if (valid) {
-      console.log(user)
+      user.password = pencode.pencode(user.password)
       Axios.post('/user/login', user).then((res) => {
-        console.log(res)
+
         if (res.code === 200) {
           DynamicMenuRouter(res.data.menuData);
           const rowUsed = res.data.user
@@ -101,6 +102,12 @@ const login = function () {
           localStorage.setItem("user", JSON.stringify(rowUsed))
           localStorage.setItem("token", res.data.token)
           router.push('/space')
+        } else {
+          ElNotification({
+            title: "Info",
+            message: res.msg,
+            type: "error"
+          })
         }
       })
 

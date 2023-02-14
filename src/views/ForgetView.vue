@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-
+    <h2>重置密码</h2>
     <el-form
         ref="formRef"
         label-width="120px"
@@ -48,10 +48,14 @@ margin-right: 20px"
 </template>
 
 <script setup>
-import {h, reactive, ref} from 'vue'
+import {h, onBeforeUnmount, reactive, ref} from 'vue'
 import {ElNotification} from "element-plus";
 import Axios from "@/utils/request";
+import {hashPW} from "@/utils/HashPW";
+import router from "@/router";
 
+const timerCnt = ref(null)
+const timer = ref(null)
 const minute = ref(false)
 const checkcode = ref("")
 const num = ref("")
@@ -87,7 +91,7 @@ const EmailCheck = function () {
   } else {
     num.value = 60
     minute.value = true
-    setInterval(() => {
+    timerCnt.value = setInterval(() => {
       num.value -= 1
       if (num.value < 1) {
         clearInterval(num.value)
@@ -98,7 +102,7 @@ const EmailCheck = function () {
     Axios.get("/user/emailCheck", {
       params: {
         email: formObj.email,
-        type: "rs"
+        type: "fp"
       }, headers: {
         'Content-Type': 'application/json;charset=utf-8',
       }
@@ -110,11 +114,33 @@ const EmailCheck = function () {
     })
   }
 }
+
 const submitForm = (formEl) => {
+  formObj.password = hashPW(formObj.password)
   if (!formEl) return
   formEl.validate((valid) => {
     if (valid) {
       console.log('submit!')
+      Axios.get("/user/forget", {
+        params: {
+          email: formObj.email,
+          type: "fp",
+          npasswd: formObj.password,
+          checkCode: checkcode
+        }
+      }).then((res) => {
+        ElNotification({
+          title: '提示',
+          message: h('i', {style: 'color: teal'}, res.msg),
+        })
+        timer.value = setTimeout(function () {
+          if (res.code === 200) {
+            router.push({
+              path: "/"
+            })
+          }
+        },3000)
+      })
     } else {
       console.log('error submit!')
       return false
@@ -126,6 +152,10 @@ const resetForm = (formEl) => {
   if (!formEl) return
   formEl.resetFields()
 }
+onBeforeUnmount(() => {
+  clearTimeout(timer.value)
+  clearInterval(timerCnt.value)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -133,6 +163,7 @@ const resetForm = (formEl) => {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
   height: 100vh;
 }
 

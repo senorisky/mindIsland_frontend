@@ -4,7 +4,7 @@
     <div class="switch__circle switch__circle--t"></div>
     <div class="switch__container" id="switch-c1">
       <h2 class="switch__title title">Welcome Back !</h2>
-      <p class="switch__description description">To start Lifemind please create a account</p>
+      <p class="switch__description description">To start MindIsland please create a account</p>
       <button class="switch__button button switch-btn" @click="change()">SIGN IN</button>
     </div>
     <div class="switch__container is-hidden" id="switch-c2">

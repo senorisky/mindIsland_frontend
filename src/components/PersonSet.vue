@@ -99,7 +99,7 @@
   </div>
   <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
     <p>
-      你正在删除账号，这将会删除所有的资源!!
+      你正在注销账号，这将会删除所有的资源!!
     </p>
     <p>
       不可撤销!!
@@ -117,7 +117,7 @@
 </template>
 
 <script setup>
-import {h, onMounted, reactive, ref} from "vue";
+import {onMounted, reactive, ref} from "vue";
 import UserStore from "../store/index"
 import NoteStore from "../store/index"
 import {
@@ -125,6 +125,7 @@ import {
 } from '@element-plus/icons-vue'
 import {ElNotification} from "element-plus";
 import Axios from "@/utils/request";
+import pencode from "@/utils/encode"
 import router from "@/router";
 
 const centerDialogVisible = ref(false)
@@ -159,13 +160,15 @@ const ChangeUser = function () {
   drawer1.value = true;
 }
 const SaveUser = function () {
+  let oldpass = pencode.pencode(form.oldpass)
+  let newpass = pencode.pencode(form.newpass)
   Axios.get('/user/save', {
     params: {
       name: form.name,
       email: form.email,
       des: form.des,
-      oldpass: form.oldpass,
-      newpass: form.newpass
+      oldpass,
+      newpass
     },
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
@@ -191,8 +194,9 @@ const SaveUser = function () {
           }
         } else {
           ElNotification({
-            title: '提示',
-            message: h('i', {style: 'color: teal'}, res.msg),
+            title: 'Info' ,
+            message: res.msg,
+            type: "error"
           })
         }
       }
@@ -224,11 +228,13 @@ const deleteUser = function () {
       UserStore.commit("resetData")
       NoteStore.commit("resetData")
       router.push({path: "/"})
+    } else {
+      ElNotification({
+        title: 'Info',
+        message: res.msg,
+        type: "error"
+      })
     }
-    ElNotification({
-      title: '提示',
-      message: h('i', {style: 'color: teal'}, res.msg),
-    })
 
   }).catch(err => {
     console.log(err)
@@ -246,7 +252,6 @@ const logout = function () {
     }
   }).then(res => {
     if (res.code === 200) {
-      console.log("登出成功", res)
       window.localStorage.clear()
       window.sessionStorage.clear()
       UserStore.commit("resetData")
@@ -254,8 +259,9 @@ const logout = function () {
       router.push({path: "/"})
     } else {
       ElNotification({
-        title: '提示',
-        message: h('i', {style: 'color: teal'}, res.msg),
+        title: 'Info',
+        message: res.msg,
+        type: "error"
       })
     }
   }).catch(err => {
@@ -268,15 +274,17 @@ const beforeUploadHandle = function (file) {
   const isLt3M = file.size / 1024 / 1024 / 1024 < 5;
   if (!isJPG && !isPNG) {
     ElNotification({
-      title: '提示',
-      message: h('i', {style: 'color: teal'}, "不支持此格式"),
+      title: 'Info',
+      message: "不支持此格式",
+      type: "warning"
     })
     return false;
   }
   if (!isLt3M) {
     ElNotification({
-      title: '提示',
-      message: h('i', {style: 'color: teal'}, "图片大小不能超过5MB"),
+      title: 'Info',
+      message: "图片大小不能超过5MB",
+      type: "warning"
     })
     return false;
   }
@@ -297,10 +305,16 @@ const upLoadHeader = function (item) {
       console.log("上传头像成功", res)
       UserInfo.header = res.data.user.avatar
       UserStore.commit("saveUser", res.data.user)
+      ElNotification({
+        title: 'Info',
+        message: "上传头像成功",
+        type: "success"
+      })
     } else {
       ElNotification({
-        title: '提示',
-        message: h('i', {style: 'color: teal'}, res.msg),
+        title: 'Info',
+        message: res.msg,
+        type: "error"
       })
     }
   }).catch(err => {

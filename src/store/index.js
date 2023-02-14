@@ -1,11 +1,9 @@
 import {createStore} from 'vuex'
 // eslint-disable-next-line no-unused-vars
 import Axios from "@/utils/request";
-// eslint-disable-next-line no-unused-vars
-import qs from "qs";
 import router from "@/router";
 import {ElNotification} from "element-plus";
-import {h} from "vue";
+
 
 const UserStore = {
     state: {
@@ -273,8 +271,9 @@ const NoteStore = {
                     }
                 } else {
                     ElNotification({
-                        title: '提示',
-                        message: h('i', {style: 'color: teal'}, res.msg),
+                        title: 'Info',
+                        message: res.msg,
+                        type: "error"
                     })
                 }
             }).catch(function (error) {
