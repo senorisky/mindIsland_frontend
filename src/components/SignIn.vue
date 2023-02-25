@@ -32,7 +32,7 @@
 <script setup>
 
 import Mitt from "@/EventBus/mitt";
-import { onMounted, onUnmounted, reactive, ref} from "vue";
+import {onMounted, onUnmounted, reactive, ref} from "vue";
 import router from "@/router";
 import UserStore from "../store/index"
 import pencode from "@/utils/encode"
@@ -90,9 +90,13 @@ const loginForm = ref()
 const login = function () {
   loginForm.value.validate((valid) => {
     if (valid) {
-      user.password = pencode.pencode(user.password)
-      Axios.post('/user/login', user).then((res) => {
-
+      const pwd = pencode.pencode(user.password)
+      Axios.post('/user/login', {}, {
+        params: {
+          username: user.email,
+          password: pwd
+        }
+      }).then((res) => {
         if (res.code === 200) {
           DynamicMenuRouter(res.data.menuData);
           const rowUsed = res.data.user

@@ -194,7 +194,7 @@ const SaveUser = function () {
           }
         } else {
           ElNotification({
-            title: 'Info' ,
+            title: 'Info',
             message: res.msg,
             type: "error"
           })
@@ -213,7 +213,7 @@ const CancelAdd = function () {
 const deleteUser = function () {
   Axios.get('/user/delete', {
     params: {
-      passwd: passwd.value,
+      passwd: pencode.pencode(passwd.value),
       userId: UserStore.getters.getUser.id
     },
     headers: {

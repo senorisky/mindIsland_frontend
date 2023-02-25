@@ -41,7 +41,8 @@
             placeholder="6位邮箱验证码"
             v-model="checkcode"
         />
-        <el-button :disabled="minute" plain type="primary" style="margin-left: 30px" @click="EmailCheck">点击获取
+        <el-button :disabled="minute" plain type="primary" style="margin-left: 30px;width: 90px" @click="EmailCheck">
+          点击获取
           {{ num }}
         </el-button>
       </el-form-item>
@@ -103,17 +104,21 @@ const regist = () => {
         user,
         CheckCode: checkcode.value
       }).then((res) => {
-        let mtype = "error"
-        if (res.data.code === 200) {
-          mtype = "success"
+        if (res.code === 200) {
           registForm.value.resetFields();
           checkcode.value = ""
+          ElNotification({
+            title: "Info",
+            message: res.msg,
+            type: "success"
+          })
+        } else {
+          ElNotification({
+            title: "Info",
+            message: res.msg,
+            type: "error"
+          })
         }
-        ElNotification({
-          title: "Info",
-          message: res.msg,
-          type: mtype
-        })
       }).catch(function (error) {
         console.log(error);
       });
@@ -158,7 +163,10 @@ const EmailCheck = function () {
           type: "error"
         })
       }
+    }).finally(()=>{
+      clearInterval(emialTimer.value)
     })
+
   }
 }
 onMounted(() => {

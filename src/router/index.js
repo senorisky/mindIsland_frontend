@@ -6,6 +6,7 @@ import PersonSet from "@/components/PersonSet";
 import UserStore from "../store/index.js"
 import NoteStore from "@/store";
 import ForgetView from "@/views/ForgetView";
+import {ElNotification} from "element-plus";
 // import {toRaw} from "vue";
 
 const routes = [
@@ -39,22 +40,25 @@ const router = createRouter({
 
 //全局路由守卫 前置  初始和每一次路由跳转的时候进行跳转  next放行
 router.beforeEach(async (to, from, next) => {
-    const token = localStorage.getItem("token");
-    if ((token === undefined || token === null) && (to.path !== "/")) {
-        to.path = "/"
-        next()
-    }
-    console.log("token", token)
+
     console.log("跳转到", to)
     console.log("from", from.path)
+    if (to.path === "/")
+        return next()
+    const token = localStorage.getItem("token")
+    console.log("token", token)
+    if ((token === undefined || token === null) && (to.path !== "/")) {
+        ElNotification({
+            title: "Info",
+            message: "请先登录",
+            type: "warning"
+        })
+        return next("/")
+    }
     //处理刷新界面动态路由丢失问题
     const user = UserStore.getters.getUser;
     console.log(user.name != null)
-    //首页时候，直接跳转（不是动态页面）
-    if (to.path === "/") {
-        next();
-    }//登录进主页时候，直接跳转（不是动态页面）
-    else if (user.name !== null) {
+    if (user.name !== null) {
         if (token === undefined || token === null) {
             return false;
         }

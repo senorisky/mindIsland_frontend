@@ -51,8 +51,8 @@ margin-right: 20px"
 import {h, onBeforeUnmount, reactive, ref} from 'vue'
 import {ElNotification} from "element-plus";
 import Axios from "@/utils/request";
-import {hashPW} from "@/utils/HashPW";
 import router from "@/router";
+import pencode from "@/utils/encode"
 
 const timerCnt = ref(null)
 const timer = ref(null)
@@ -116,7 +116,7 @@ const EmailCheck = function () {
 }
 
 const submitForm = (formEl) => {
-  formObj.password = hashPW(formObj.password)
+  formObj.password = pencode(formObj.password)
   if (!formEl) return
   formEl.validate((valid) => {
     if (valid) {
@@ -139,7 +139,7 @@ const submitForm = (formEl) => {
               path: "/"
             })
           }
-        },3000)
+        }, 3000)
       })
     } else {
       console.log('error submit!')

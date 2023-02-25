@@ -3,12 +3,12 @@
     <div class="switch__circle"></div>
     <div class="switch__circle switch__circle--t"></div>
     <div class="switch__container" id="switch-c1">
-      <h2 class="switch__title title">Welcome Back !</h2>
+      <h2 class="switch__title title">Hello Friend !</h2>
       <p class="switch__description description">To start MindIsland please create a account</p>
       <button class="switch__button button switch-btn" @click="change()">SIGN IN</button>
     </div>
     <div class="switch__container is-hidden" id="switch-c2">
-      <h2 class="switch__title title">Hello Friend !</h2>
+      <h2 class="switch__title title">Welcome Back !</h2>
       <p class="switch__description description">Enter your email and password </p>
       <button class="switch__button button switch-btn" @click="change()">SIGN UP</button>
     </div>
@@ -36,7 +36,6 @@ let changeForm = () => {
   setTimeout(function () {
     switchCtn.classList.remove("is-gx");
   }, 1500)
-
   switchCtn.classList.toggle("is-txr");
   switchCircle[0].classList.toggle("is-txr");
   switchCircle[1].classList.toggle("is-txr");
