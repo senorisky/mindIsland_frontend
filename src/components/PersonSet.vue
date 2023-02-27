@@ -2,7 +2,7 @@
   <div style="display: flex;flex-direction: column; margin-top: 60px;">
     <!--  个人中心  头 展示昵称，id，签名   -->
     <div style="display: flex;flex-direction: row; justify-content: left; align-items: flex-end;">
-      <el-avatar :size=128 :src="UserInfo.header"></el-avatar>
+      <el-avatar :fit="'fill'" :size=128 :src="UserInfo.header"></el-avatar>
       <el-icon>
         <el-upload
             class="dl-avatar-uploader-min square"
@@ -18,18 +18,18 @@
     </div>
     <div style="display: flex;flex-direction: column">
       <div style="display: flex;flex-direction: row">
-        <div style=" width: 60px;   position: relative;
+        <div style=" width: 100px;   position: relative;
     display: inline-flex;
     align-items: center;
+    font-size:18px;
     justify-content: center;">用户名:
         </div>
         <el-input style="margin-top: 10px; font-size: 18px;vertical-align: middle" readonly
                   class="personSetInput" v-model="UserInfo.name">
-
         </el-input>
       </div>
       <div style="display: flex;flex-direction: row;margin-top: 10px">
-        <div style=" width: 60px;   position: relative;
+        <div style=" width: 100px;   position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;">FID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:
@@ -38,7 +38,7 @@
                   v-model="UserInfo.id"></el-input>
       </div>
       <div style="display: flex;flex-direction: row;margin-top: 10px">
-        <div style=" width: 60px;   position: relative;
+        <div style=" width: 100px;   position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;">签&nbsp;&nbsp;&nbsp;&nbsp;名:
@@ -48,7 +48,7 @@
                   v-model="UserInfo.desc" readonly placeholder="空空如也~~"></el-input>
       </div>
       <div style="display: flex;flex-direction: row;margin-top: 10px">
-        <div style=" width: 60px;   position: relative;
+        <div style=" width: 100px;   position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;">邮&nbsp;&nbsp;&nbsp;&nbsp;箱:
@@ -57,7 +57,7 @@
                   v-model="UserInfo.email"></el-input>
       </div>
       <div style="display: flex;flex-direction: row;margin-top: 10px">
-        <el-button type="warning" @click="logout" plain>退出登录</el-button>
+        <el-button type="warning" @click="logConfirm" plain>退出登录</el-button>
         <el-button type="danger" @click="DialogConfirm" plain>注销账号</el-button>
         <el-button type="default" @click="ChangeUser" plain>修改信息</el-button>
       </div>
@@ -77,9 +77,6 @@
       <el-form ref="formRef" :model="form" label-width="20px">
         <el-form-item prop="name" class="deepInput">
           <el-input v-model="form.name" placeholder="昵称"/>
-        </el-form-item>
-        <el-form-item prop="email">
-          <el-input v-model="form.email" placeholder="邮箱"/>
         </el-form-item>
         <el-form-item prop="email">
           <el-input v-model="form.oldpass" type="password" placeholder="原密码"/>
@@ -114,6 +111,19 @@
       </span>
     </template>
   </el-dialog>
+  <el-dialog v-model="logoutDialog" title="Warning" width="30%" center>
+    <p>
+      确认退出登录？
+    </p>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="logoutDialog = false">Cancel</el-button>
+        <el-button type="primary" @click="logout">
+          Confirm
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -128,19 +138,13 @@ import Axios from "@/utils/request";
 import pencode from "@/utils/encode"
 import router from "@/router";
 
+
 const centerDialogVisible = ref(false)
+const logoutDialog = ref(false)
 const passwd = ref("")
 const formRef = ref(null)
 const direction = ref('rtl')
 const drawer1 = ref(false)
-const DialogConfirm = function () {
-  centerDialogVisible.value = true;
-}
-const handleClose = (done) => {
-  //抽屉关闭
-  done()
-  formRef.value.resetFields();
-}
 const UserInfo = reactive({
   header: "",
   name: "",
@@ -155,7 +159,17 @@ const form = reactive({
   oldpass: "",
   newpass: ""
 })
-
+const DialogConfirm = function () {
+  centerDialogVisible.value = true;
+}
+const logConfirm = function () {
+  logoutDialog.value = true;
+}
+const handleClose = (done) => {
+  //抽屉关闭
+  done()
+  formRef.value.resetFields();
+}
 const ChangeUser = function () {
   drawer1.value = true;
 }
@@ -165,7 +179,7 @@ const SaveUser = function () {
   Axios.get('/user/save', {
     params: {
       name: form.name,
-      email: form.email,
+      email: UserInfo.email,
       des: form.des,
       oldpass,
       newpass
@@ -235,7 +249,6 @@ const deleteUser = function () {
         type: "error"
       })
     }
-
   }).catch(err => {
     console.log(err)
   })
@@ -256,6 +269,7 @@ const logout = function () {
       window.sessionStorage.clear()
       UserStore.commit("resetData")
       NoteStore.commit("resetData")
+      logoutDialog.value = false;
       router.push({path: "/"})
     } else {
       ElNotification({
@@ -271,7 +285,7 @@ const logout = function () {
 const beforeUploadHandle = function (file) {
   const isJPG = file.type === "image/jpeg";
   const isPNG = file.type === "image/png";
-  const isLt3M = file.size / 1024 / 1024 / 1024 < 5;
+  const isLt3M = file.size / 1024 / 1024  < 3;
   if (!isJPG && !isPNG) {
     ElNotification({
       title: 'Info',
@@ -283,7 +297,7 @@ const beforeUploadHandle = function (file) {
   if (!isLt3M) {
     ElNotification({
       title: 'Info',
-      message: "图片大小不能超过5MB",
+      message: "图片大小不能超过3MB",
       type: "warning"
     })
     return false;

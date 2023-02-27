@@ -148,6 +148,7 @@ const searchRouter = function (id, fid) {
     NoteStore.commit("saveCurrentNoteById", fid)
     NoteStore.commit("saveCurrentView", {})
     console.log("当前note", NoteStore.getters.getCurrenNote)
+    searchInput.value = ""
     router.push({
       name: fid + "Profile",
     });
@@ -214,7 +215,6 @@ const search = function () {
     }
   }
   // console.log(seachRes)
-
 }
 const CancelAdd = function () {
   formRef.value.resetFields();
@@ -244,7 +244,7 @@ const addNote = function () {
       const note = {
         id: UserStore.getters.getUser.id + nid,
         name: form.name,
-        info:form.desc,
+        info: form.desc,
         userId: UserStore.getters.getUser.id,
         type: "note",
         fname: "",

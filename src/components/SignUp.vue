@@ -35,11 +35,12 @@
         <el-input
             style=" width: 230px;height: 40px;margin: 4px 0;
     font-size: 13px;
-    letter-spacing: .15px;
+    letter-spacing: 15px;
     border: none;
     outline: none;"
             placeholder="6位邮箱验证码"
             v-model="checkcode"
+            @keydown.enter="regist"
         />
         <el-button :disabled="minute" plain type="primary" style="margin-left: 30px;width: 90px" @click="EmailCheck">
           点击获取
@@ -70,7 +71,6 @@ let user = reactive({
 const registRules = {
   userName: [
     {required: true, message: 'please enter username', trigger: 'bluer'},
-    {min: 4, max: 10, message: 'Length is between 4 and 10 letters', trigger: 'bluer'}
   ],
   password: [
     {required: true, message: 'please enter password', trigger: 'bluer'},
@@ -112,6 +112,7 @@ const regist = () => {
             message: res.msg,
             type: "success"
           })
+          transform()
         } else {
           ElNotification({
             title: "Info",
@@ -163,17 +164,15 @@ const EmailCheck = function () {
           type: "error"
         })
       }
-    }).finally(()=>{
-      clearInterval(emialTimer.value)
     })
-
   }
 }
+const transform = function () {
+  let aContainer = document.querySelector("#a-container")
+  aContainer.classList.toggle("is-txl");
+}
 onMounted(() => {
-  Mitt.on('change', () => {
-    let aContainer = document.querySelector("#a-container")
-    aContainer.classList.toggle("is-txl");
-  })
+  Mitt.on('change', transform)
 })
 onUnmounted(() => {
   clearInterval(emialTimer.value)
@@ -184,9 +183,4 @@ onUnmounted(() => {
 <style scoped lang="scss">
 @import '../assets/login.scss';
 /* 将源码中的css样式单独存放,在各组件中导入就可以。*/
-</style>
-<style>
-.el-input__wrapper {
-  padding: 0;
-}
 </style>

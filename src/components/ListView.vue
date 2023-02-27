@@ -96,7 +96,7 @@
   </div>
   <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
     <span>
-      你正在删除一个动态列表，这是一个不可撤销的操作!!
+      你正在删除一个动态列表({{deleteListName.colum}})，这是一个不可撤销的操作!!
     </span>
     <template #footer>
       <span class="dialog-footer">
@@ -130,6 +130,7 @@ const direction = ref('rtl')
 const drawer1 = ref(false)
 const drawer2 = ref(false)
 const drawer3 = ref(false)
+const deleteListName = ref()
 //{id:,vid:,items:[{colum:,items[{name:},{name:}....]},{colum:,items[]}.....]}  ListData
 const listData = reactive({})
 const ItemData = reactive({
@@ -183,6 +184,7 @@ const DialogConfirm = function (index) {
   console.log("弹出dialog")
   centerDialogVisible.value = true;
   columIndex.value = index;
+  deleteListName.value = listData.value[index]
 }
 const handleClose = (done) => {
   //抽屉关闭
@@ -260,12 +262,12 @@ const addListColum = function () {
     if (res.code === 200) {
       console.log("listAddColum", res);
       listData.value = res.data.elist.datas;
+      formRef.value.resetFields();
     } else {
       ElNotification({
         title: '提示',
         message: h('i', {style: 'color: teal'}, '添加失败'),
       })
-      return;
     }
   }).catch(function (error) {
     console.log(error);

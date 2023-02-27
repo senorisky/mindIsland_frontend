@@ -77,7 +77,8 @@ const lastvid = computed({
 const beforeUploadHandle = function (file) {
   const isJPG = file.type === "image/jpeg";
   const isPNG = file.type === "image/png";
-  const isLt3M = file.size / 1024 / 1024 / 1024 < 5;
+  const isLt3M = file.size / 1024 / 1024  < 3;
+  console.log(isLt3M)
   if (!isJPG && !isPNG) {
     ElNotification({
       title: '提示',
@@ -88,7 +89,7 @@ const beforeUploadHandle = function (file) {
   if (!isLt3M) {
     ElNotification({
       title: '提示',
-      message: h('i', {style: 'color: teal'}, "图片大小不能超过5MB"),
+      message: h('i', {style: 'color: teal'}, "图片大小不能超过3MB"),
     })
     return false;
   }

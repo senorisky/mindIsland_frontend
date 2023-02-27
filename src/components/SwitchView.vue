@@ -74,6 +74,7 @@ const change = () => {
   Mitt.emit('change', sidebarOpen.value)
 }
 onMounted(() => {
+  change()
   // if (window.history && window.history.pushState) {
   //   window.history.pushState(null, null, document.URL);
   //   window.addEventListener('popstate', UrlBackHandler, false);    //false阻止默认事件    this.fun是指返回按建实际要执行的方法

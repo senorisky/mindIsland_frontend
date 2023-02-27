@@ -22,6 +22,7 @@
             class="form__input"
             v-model="user.password"
             placeholder="Password"
+            @keydown.enter="login"
             type="password"/>
       </el-form-item>
       <a class="form__link" @click="forget">Forgot your password?</a>
@@ -54,9 +55,11 @@ const DynamicMenuRouter = function (menuData) {
   //动态路由存在本地-----退出登录时候清空
   localStorage.setItem('menuData', JSON.stringify(menuData))
   console.log("login menu", menuData)
+
   for (let father of menuData) {
     if (father.type === "note") {
       router.addRoute("space", {
+        redirect: "/space/" + father.id + "/Profile",
         path: "/space/" + father.id,
         name: father.id,
         component: () => import(`../components/${father.component}`)
@@ -84,6 +87,15 @@ const DynamicMenuRouter = function (menuData) {
       }
     }
   }
+  menuData.push({
+    id: "System",
+    name: "SystemProfile",
+    path: "/space/SystemProfile",
+    type: "note",
+    children: [],
+    icon: "iconfont el-icon-guanyu",
+    component: "SystemView"
+  })
   NoteStore.commit("saveMenuData", menuData)
 }
 const loginForm = ref()
@@ -127,12 +139,13 @@ const loginRules = {
     {min: 6, max: 11, message: 'password must between 6 and 11', trigger: 'bluer'}
   ]
 }
+const transform = function () {
+  let bContainer = document.querySelector("#b-container")
+  bContainer.classList.toggle("is-txl");
+  bContainer.classList.toggle("is-z200");
+}
 onMounted(() => {
-  Mitt.on('change', () => {
-    let bContainer = document.querySelector("#b-container")
-    bContainer.classList.toggle("is-txl");
-    bContainer.classList.toggle("is-z200");
-  })
+  Mitt.on('change', transform)
 })
 onUnmounted(() => {
   Mitt.off('change')

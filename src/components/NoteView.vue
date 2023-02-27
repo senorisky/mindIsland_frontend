@@ -15,7 +15,6 @@
           Delete
         </el-button>
       </div>
-
       <el-divider style="margin-bottom: 15px !important;"/>
     </div>
   </div>
@@ -41,7 +40,7 @@
   <span class="border"></span>
   <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
     <span>
-      你正在删除一份View包括其上的所有资源，这是一个不可撤销的操作!!
+      你正在删除一份View({{ dtag.name }})包括其上的所有资源，这是一个不可撤销的操作!!
     </span>
     <template #footer>
       <span class="dialog-footer">
@@ -101,7 +100,7 @@
   </div>
   <el-dialog v-model="centerDialogVisible2" title="Warning" width="30%" center>
     <p>
-      你正在删除一份Note包括其上所有的View和资源!!
+      你正在删除一份Note({{ noteName }})包括其上所有的View和资源!!
     </p>
     <p>
       这是一个不可撤销的操作！！
@@ -128,7 +127,8 @@ import router from "@/router";
 const v_name = ref("");
 const centerDialogVisible = ref(false)
 const centerDialogVisible2 = ref(false)
-const dtag = ref();
+const dtag = ref({});
+
 const dtagindex = ref();
 const DialogConfirm = function (tag, index) {
   console.log("删除view", tag, index)
@@ -282,11 +282,9 @@ const Viewdetail = function (tag) {
     })
   }
 }
-
-
 // let views = reactive([]);
 onMounted(() => {
-  console.log("noteMounted")
+  console.log("noteMounted", noteName)
 //点击note的view
   Mitt.on("ViewRouter", (item) => {
     //数据

@@ -1,7 +1,7 @@
 import axios from 'axios';
 // 创建一个自定义的Axios对象
 const Axios = axios.create({
-    baseURL: 'http://localhost:8081',
+    baseURL: 'http://49.234.58.186:8081',
     timeout: 30000,
     headers: {
         'Content-Type': 'application/json;charset=utf-8',

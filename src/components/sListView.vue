@@ -146,8 +146,8 @@ const beforeUploadHandle = function (file) {
   const isJPG = file.type === "image/jpeg";
   const isPNG = file.type === "image/png";
   const isMP4 = file.type === "video/mp4";
-  const isLt3M = file.size / 1024 / 1024 / 1024 < 5;
-  const isLt150M = file.size / 1024 / 1024 / 1024 < 120;
+  const isLt3M = file.size / 1024 / 1024  < 3;
+  const isLt150M = file.size / 1024 / 1024  < 100;
   if (!isJPG && !isPNG && !isMP4) {
     ElNotification({
       title: '提示',
@@ -158,14 +158,14 @@ const beforeUploadHandle = function (file) {
   if ((isPNG || isJPG) && !isLt3M) {
     ElNotification({
       title: '提示',
-      message: h('i', {style: 'color: teal'}, "图片大小不能超过5MB"),
+      message: h('i', {style: 'color: teal'}, "图片大小不能超过3MB"),
     })
     return false;
   }
   if (isMP4 && !isLt150M) {
     ElNotification({
       title: '提示',
-      message: h('i', {style: 'color: teal'}, "视频大小不得大于120MB"),
+      message: h('i', {style: 'color: teal'}, "视频大小不得大于100MB"),
     })
     return false;
   }
@@ -240,7 +240,7 @@ const submitUpLoad = function (item) {
   }).catch(err => {
     console.log(err)
   })
-  upList.value=0
+  upList.value = 0
   upLoadRef.value.clearFiles();
 }
 const addItem = function () {
