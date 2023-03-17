@@ -101,6 +101,14 @@ const name = ref("");
 //增加列
 const addColumn = function () {
   // console.log("添加table列")
+  if (dynamicColumns.length >= 40) {
+    ElNotification({
+      title: '提示',
+      message: "一个Table中不能超过40个动态列",
+      type: "warning"
+    })
+    return
+  }
   Axios.get("/etable/addTableColumn", {
     params: {
       name: name.value,

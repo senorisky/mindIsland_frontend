@@ -9,7 +9,7 @@
                :http-request="UpLoadOnePic"
                :before-upload="beforeUploadHandle"
                :on-exceed="handleExceed"
-               :limit=200
+               :limit=50
     >
       <el-icon>
         <Plus/>

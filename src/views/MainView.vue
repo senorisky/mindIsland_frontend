@@ -26,6 +26,7 @@
     <!--  Note的内容页  -->
     <RouterView></RouterView>
   </div>
+
   <div class="view_drawer_contrainer">
     <!--  添加note 或者page的抽屉 内有表单  -->
     <el-drawer
@@ -420,7 +421,6 @@ onUnmounted(() => {
 
 /* 主区域 */
 .note_content {
-
   position: absolute;
   margin-right: 150px;
   top: 0px;

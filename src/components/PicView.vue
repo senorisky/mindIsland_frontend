@@ -89,7 +89,8 @@ const beforeAvatarUpload = function (file) {
 const UpLoadOnePic = function (item) {
   const config = {
     headers: {
-      'Content-Type': 'multipart/form-data'
+      'Content-Type': 'multipart/form-data',
+      'lm-token': localStorage.getItem("token")
     }
   }
   let formData = new FormData()

@@ -117,6 +117,7 @@ const login = function () {
           UserStore.commit("saveToken", res.data.token);
           localStorage.setItem("user", JSON.stringify(rowUsed))
           localStorage.setItem("token", res.data.token)
+          console.log("登录成功", localStorage.getItem("token"))
           router.push('/space')
         } else {
           ElNotification({
@@ -144,7 +145,31 @@ const transform = function () {
   bContainer.classList.toggle("is-txl");
   bContainer.classList.toggle("is-z200");
 }
+const autoLogin = function () {
+  console.log("自动登录", localStorage.getItem("token"))
+  if (localStorage.getItem("token") !== undefined)
+    Axios.get("/user/autoLogin", {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'lm-token': localStorage.getItem("token")
+          }
+        }
+    ).then((res) => {
+      if (res.code === 200) {
+        DynamicMenuRouter(res.data.menuData);
+        const rowUsed = res.data.user
+        console.log(rowUsed)
+        UserStore.commit("saveUser", res.data.user)
+        UserStore.commit("saveToken", res.data.token);
+        localStorage.setItem("user", JSON.stringify(rowUsed))
+        localStorage.setItem("token", res.data.token)
+        console.log("登录成功", localStorage.getItem("token"))
+        router.push('/space')
+      }
+    })
+}
 onMounted(() => {
+  autoLogin()
   Mitt.on('change', transform)
 })
 onUnmounted(() => {

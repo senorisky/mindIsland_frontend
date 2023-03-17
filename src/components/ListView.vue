@@ -96,7 +96,7 @@
   </div>
   <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
     <span>
-      你正在删除一个动态列表({{deleteListName.colum}})，这是一个不可撤销的操作!!
+      你正在删除一个动态列表({{ deleteListName.colum }})，这是一个不可撤销的操作!!
     </span>
     <template #footer>
       <span class="dialog-footer">
@@ -217,6 +217,11 @@ const addItem = function () {
   Axios.post("/elist/saveEList", {
     elist: tmp,
     url: ""
+  }, {
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'lm-token': localStorage.getItem("token")
+    }
   }).then((res) => {
     if (res.code === 200) {
       console.log(res);
@@ -448,8 +453,6 @@ const ShowItemDw = (index) => {
   height: 50px;
   margin: 10px;
   text-align: center;
-
-
   border-radius: 4px;
 }
 

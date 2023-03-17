@@ -152,6 +152,14 @@ const NoteStore = {
                 if (context.state.menuData[item].name === view.fname) {
                     console.log(router.getRoutes())
                     const father = context.state.menuData[item];
+                    if (father.length >= 10) {
+                        ElNotification({
+                            title: '提示',
+                            message: "一个Note中不能超过10个view",
+                            type: "warning"
+                        })
+                        break;
+                    }
                     const config = {
                         headers: {
                             'Content-Type': 'application/json;charset=utf-8',
@@ -160,7 +168,7 @@ const NoteStore = {
                     }
                     Axios.post("/view/addView", view, config).then((res) => {
                         console.log("addView", res)
-                        if (res.code == 200) {
+                        if (res.code === 200) {
                             context.commit("saveChild", {index: item, child: view})
                             router.addRoute(father.id, {
                                 path: "/space/" + father.id + "/" + view.id,
@@ -219,8 +227,14 @@ const NoteStore = {
             })
         },
         changeNoteName(context, name) {
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8',
+                    'lm-token': localStorage.getItem("token")
+                }
+            }
             const note = context.state.currentNote
-            Axios.post("note/saveNote", note).then((res) => {
+            Axios.post("note/saveNote", note, config).then((res) => {
                 console.log("change note name", res)
                 if (res.code === 200) {
                     context.commit("saveNoteName", name);
@@ -230,7 +244,13 @@ const NoteStore = {
         changeNoteInfo(context, value) {
             const note = context.state.currentNote;
             note.info = value;
-            Axios.post("note/saveNote", note).then((res) => {
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8',
+                    'lm-token': localStorage.getItem("token")
+                }
+            }
+            Axios.post("note/saveNote", note, config).then((res) => {
                 console.log("save note info", res)
                 if (res.code === 200) {
                     console.log(res.data.note)

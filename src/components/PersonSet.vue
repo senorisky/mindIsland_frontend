@@ -285,7 +285,7 @@ const logout = function () {
 const beforeUploadHandle = function (file) {
   const isJPG = file.type === "image/jpeg";
   const isPNG = file.type === "image/png";
-  const isLt3M = file.size / 1024 / 1024  < 3;
+  const isLt3M = file.size / 1024 / 1024 < 3;
   if (!isJPG && !isPNG) {
     ElNotification({
       title: 'Info',

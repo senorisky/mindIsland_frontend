@@ -121,8 +121,7 @@ export default {
       info: ""
     })
 
-    const pageData = reactive([
-    ])
+    const pageData = reactive([])
     const pdfFunc = reactive({
       id: "page",
       popTitle: NoteStore.getters.getCurrenNote.name,
@@ -186,7 +185,13 @@ export default {
         text: "",
         pageId: pageInfo.noteId
       }
-      Axios.post("/page/addPageContent", h1).then((res) => {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'lm-token': localStorage.getItem("token")
+        }
+      }
+      Axios.post("/page/addPageContent", h1, config).then((res) => {
         if (res.code === 200) {
           pageData.value.push(h1)
         }
@@ -199,7 +204,13 @@ export default {
         text: "",
         pageId: pageInfo.noteId
       }
-      Axios.post("/page/addPageContent", h2).then((res) => {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'lm-token': localStorage.getItem("token")
+        }
+      }
+      Axios.post("/page/addPageContent", h2, config).then((res) => {
         if (res.code === 200) {
           pageData.value.push(h2)
         }
@@ -212,7 +223,13 @@ export default {
         pageId: pageInfo.noteId
 
       }
-      Axios.post("/page/addPageContent", h3).then((res) => {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'lm-token': localStorage.getItem("token")
+        }
+      }
+      Axios.post("/page/addPageContent", h3, config).then((res) => {
         if (res.code === 200) {
           pageData.value.push(h3)
         }
@@ -224,7 +241,13 @@ export default {
         text: "",
         pageId: pageInfo.noteId
       }
-      Axios.post("/page/addPageContent", text).then((res) => {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'lm-token': localStorage.getItem("token")
+        }
+      }
+      Axios.post("/page/addPageContent", text, config).then((res) => {
         console.log("addPageContent", res)
         if (res.code === 200) {
           pageData.value.push(text)
@@ -237,7 +260,13 @@ export default {
         text: "",
         pageId: pageInfo.noteId
       }
-      Axios.post("/page/addPageContent", text).then((res) => {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'lm-token': localStorage.getItem("token")
+        }
+      }
+      Axios.post("/page/addPageContent", text, config).then((res) => {
         console.log("addPageContent", res)
         if (res.code === 200) {
           pageData.value.push(text)

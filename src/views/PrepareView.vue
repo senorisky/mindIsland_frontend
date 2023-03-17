@@ -1,12 +1,19 @@
 <template>
-
   <div class="body">
     <div class="main">
       <SignUp></SignUp>
       <SignIn></SignIn>
       <Switch></Switch>
     </div>
+    <!--    备案号、关于、版权申明-->
+<!--    <div style="position:absolute;bottom:0;background: black;height:20px;width: 600px">-->
+    <!--      <a></a>-->
+    <!--      <a></a>-->
+    <!--      <span></span>-->
+    <!--      <span></span>-->
+    <!--    </div>-->
   </div>
+
 </template>
 
 <script setup>
