@@ -184,7 +184,8 @@ const beforeDialogClose = function () {
   centerDialogVisible.value = false
 }
 const search = function () {
-  if ("" === searchInput.value) {
+  const inputValue = searchInput.value.trim()
+  if ("" === inputValue) {
     return;
   }
   seachRes.length = 0;
@@ -192,7 +193,7 @@ const search = function () {
   // console.log(menu)
   const tmp = toRaw((menu))
   for (let item of tmp) {
-    if (item.name.indexOf(searchInput.value) !== -1) {
+    if (item.name.indexOf(inputValue) !== -1) {
       let i = reactive({})
       i.name = item.name;
       i.type = item.type;
@@ -202,7 +203,7 @@ const search = function () {
     }
     if (item.children && item.children.length > 0) {
       for (let child of item.children) {
-        if (child.name.indexOf(searchInput.value) !== -1) {
+        if (child.name.indexOf(inputValue) !== -1) {
           let j = reactive({})
           j.name = child.name;
           j.type = child.type;
@@ -230,11 +231,20 @@ const showNPDrawer = function () {
 const addNote = function () {
   if (form.name !== undefined && form.type !== undefined) {
     const np = NoteStore.getters.getMenuData;
+    const inputName = form.name.toString.trim();
+    var judgeFn = new RegExp(/\s+/g);
+    if (judgeFn.test(inputName)) {
+      ElNotification({
+        title: '提示',
+        type: 'warning',
+        message: h('i', {style: 'color: teal'}, 'Note或者Page的名字不允许包含空格'),
+      })
+    }
     for (let i in np) {
-      if (np[i].name === form.name) {
-        console.log("note或者page名字重复")
+      if (np[i].name === inputName) {
         ElNotification({
           title: '提示',
+          type: 'warning',
           message: h('i', {style: 'color: teal'}, 'Note或者Page的名字不允许重复'),
         })
         return;
@@ -259,7 +269,6 @@ const addNote = function () {
       NoteStore.dispatch("addNote", note)
     } else if (form.type === "page") {
       const pid = nanoid(8)
-      console.log(UserStore.getters.getUser)
       const page = {
         id: UserStore.getters.getUser.id + pid,
         name: form.name,

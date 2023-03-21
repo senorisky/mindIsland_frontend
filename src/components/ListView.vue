@@ -267,6 +267,7 @@ const addListColum = function () {
     if (res.code === 200) {
       console.log("listAddColum", res);
       listData.value = res.data.elist.datas;
+      newColum.value = ""
       formRef.value.resetFields();
     } else {
       ElNotification({
@@ -278,6 +279,7 @@ const addListColum = function () {
     console.log(error);
     // alert('系统繁忙请联系管理员');
   });
+  newColum.value = ""
   drawer2.value = false;
 }
 
