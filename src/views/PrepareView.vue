@@ -1,12 +1,16 @@
 <template>
   <div class="body">
-    <div class="main">
-      <SignUp></SignUp>
-      <SignIn></SignIn>
-      <Switch></Switch>
-    </div>
+    <Transition name="fade" mode="out-in">
+      <LogIn v-if="Logindefault"></LogIn>
+      <SignUp v-else-if="!Logindefault"></SignUp>
+    </Transition>
+    <el-button class="transBtn" @click="logtransfer">{{ btnText }}
+      <el-icon>
+        <DArrowRight/>
+      </el-icon>
+    </el-button>
     <!--    备案号、关于、版权申明-->
-<!--    <div style="position:absolute;bottom:0;background: black;height:20px;width: 600px">-->
+    <!--    <div style="position:absolute;bottom:0;background: black;height:20px;width: 600px">-->
     <!--      <a></a>-->
     <!--      <a></a>-->
     <!--      <span></span>-->
@@ -17,64 +21,51 @@
 </template>
 
 <script setup>
-import Switch from "@/components/SwitchView";
-import SignIn from "@/components/SignIn";
+
+import LogIn from "@/components/LogIn";
 import SignUp from "@/components/SignUp";
-</script>
-<style scoped>
-*, *::after, *::before {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  user-select: none;
+import {ref} from "vue";
+
+const btnText = ref("注册")
+const Logindefault = ref(true)
+const logtransfer = function () {
+  if (Logindefault.value) {
+    Logindefault.value = !Logindefault.value
+    btnText.value = "登录"
+  } else {
+    Logindefault.value = !Logindefault.value
+    btnText.value = "注册"
+  }
 }
+</script>
+<style scoped lang="scss">
 
 .body {
+
   width: 100%;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: "Montserrat", sans-serif;
-  font-size: 12px;
-  background-color: #ecf0f3;
-  color: #a0a5a8;
+
 }
 
-.main {
-  position: relative;
-  width: 1000px;
-  min-width: 1000px;
-  min-height: 600px;
-  height: 600px;
-  padding: 25px;
-  background-color: #ecf0f3;
-  box-shadow: 10px 10px 10px #d1d9e6, -10px -10px 10px #f9f9f9;
-  border-radius: 20px;
-  overflow: hidden;
+.transBtn {
+  height: 60%;
+  margin-left: 30px;
 }
 
-@media (max-width: 1200px) {
-  .main {
-    transform: scale(0.7);
-  }
+.fade-enter-active {
+  transition: all 0.3s ease-out;
 }
 
-@media (max-width: 1000px) {
-  .main {
-    transform: scale(0.6);
-  }
+.fade-leave-active {
+  transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
 }
 
-@media (max-width: 800px) {
-  .main {
-    transform: scale(0.5);
-  }
-}
-
-@media (max-width: 600px) {
-  .main {
-    transform: scale(0.4);
-  }
+.fade-enter-from,
+.fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
 }
 </style>

@@ -117,12 +117,13 @@
 </template>
 
 <script setup name="NoteView">
-import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {computed, h, onMounted, onUnmounted, ref} from 'vue'
 import Mitt from "@/EventBus/mitt";
 import NoteStore from "@/store";
 import {nanoid} from "nanoid"
 import {formatTime} from "@/utils/formatTime";
 import router from "@/router";
+import {ElNotification} from "element-plus";
 
 const v_name = ref("");
 const centerDialogVisible = ref(false)
@@ -170,6 +171,34 @@ const deletePage = function () {
   NoteStore.dispatch("deleteNote", data)
   centerDialogVisible2.value = false;
 }
+const verifyViewName = function (name) {
+  if (name === "") {
+    ElNotification({
+      title: '提示',
+      type: 'warning',
+      message: h('i', {style: 'color: teal'}, 'View的名字不能为空'),
+    })
+    return false
+  }
+  var judgeFn = new RegExp(/\s+/g);
+  if (judgeFn.test(name)) {
+    ElNotification({
+      title: '提示',
+      type: 'warning',
+      message: h('i', {style: 'color: teal'}, 'View的名字不允许包含空格'),
+    })
+    return false
+  }
+  if (name.length >= 13) {
+    ElNotification({
+      title: '提示',
+      type: 'warning',
+      message: h('i', {style: 'color: teal'}, 'View的名字不允许包含空格'),
+    })
+    return false
+  }
+  return true
+}
 const handleDelete = function () {
   const data = {
     view: dtag.value,
@@ -182,101 +211,99 @@ const handleDelete = function () {
 const addTable = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  const view_name = ref("Table");
-  if (v_name.value !== "") {
-    view_name.value = v_name.value;
+  v_name.value = v_name.value.trim()
+  if (verifyViewName(v_name.value)) {
+    const view_id = nanoid(10)
+    const table = {
+      name: v_name.value,
+      fname: parent_name,
+      id: view_id,
+      noteId: nid,
+      icon: "iconfont el-icon-dian1",
+      createTime: Date.now(),
+      type: "view",
+      path: parent_name + "/" + view_id,
+      component: "TableView",
+      isOpen: false
+    }
+    NoteStore.dispatch("addChild", table)
   }
-  const view_id = nanoid(10)
-  const table = {
-    name: view_name.value,
-    fname: parent_name,
-    id: view_id,
-    noteId: nid,
-    icon: "iconfont el-icon-dian1",
-    createTime: Date.now(),
-    type: "view",
-    path: parent_name + "/" + view_id,
-    component: "TableView",
-    isOpen: false
-  }
-  NoteStore.dispatch("addChild", table)
 }
 const addSingleList = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  const view_name = ref("SList")
-  if (v_name.value !== "") {
-    view_name.value = v_name.value;
+  v_name.value = v_name.value.trim()
+  if (verifyViewName(v_name.value)) {
+    const view_id = nanoid(10);
+    const List = {
+      name: v_name.value,
+      fname: parent_name,
+      noteId: nid,
+      createTime: Date.now(),
+      id: view_id,
+      icon: "iconfont el-icon-dian1",
+      type: "view",
+      path: parent_name + "/" + view_id,
+      component: "sListView",
+      isOpen: false
+    }
+    NoteStore.dispatch("addChild", List)
   }
-  const view_id = nanoid(10);
-  const List = {
-    name: view_name.value,
-    fname: parent_name,
-    noteId: nid,
-    createTime: Date.now(),
-    id: view_id,
-    icon: "iconfont el-icon-dian1",
-    type: "view",
-    path: parent_name + "/" + view_id,
-    component: "sListView",
-    isOpen: false
-  }
-  NoteStore.dispatch("addChild", List)
 }
 const addList = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  const view_name = ref("List")
-  if (v_name.value !== "") {
-    view_name.value = v_name.value;
+  v_name.value = v_name.value.trim()
+  if (verifyViewName(v_name.value)) {
+    const view_id = nanoid(10);
+    const List = {
+      name: v_name.value,
+      fname: parent_name,
+      noteId: nid,
+      createTime: Date.now(),
+      id: view_id,
+      icon: "iconfont el-icon-dian1",
+      type: "view",
+      path: parent_name + "/" + view_id,
+      component: "ListView",
+      isOpen: false
+    }
+    NoteStore.dispatch("addChild", List)
   }
-  const view_id = nanoid(10);
-  const List = {
-    name: view_name.value,
-    fname: parent_name,
-    noteId: nid,
-    createTime: Date.now(),
-    id: view_id,
-    icon: "iconfont el-icon-dian1",
-    type: "view",
-    path: parent_name + "/" + view_id,
-    component: "ListView",
-    isOpen: false
-  }
-  NoteStore.dispatch("addChild", List)
+
 }
 const addGallry = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  const view_name = ref("Gallery")
-  if (v_name.value !== "") {
-    view_name.value = v_name.value;
+  v_name.value = v_name.value.trim()
+  if (verifyViewName(v_name.value)) {
+    const view_id = nanoid(10)
+    const Gallery = {
+      name: v_name.value,
+      fname: parent_name,
+      id: view_id,
+      noteId: nid,
+      icon: "iconfont el-icon-dian1",
+      createTime: Date.now(),
+      type: "view",
+      path: parent_name + "/" + view_id,
+      component: "GalleryView",
+      isOpen: false
+    }
+    NoteStore.dispatch("addChild", Gallery)
   }
-  const view_id = nanoid(10)
-  const Gallery = {
-    name: view_name.value,
-    fname: parent_name,
-    id: view_id,
-    noteId: nid,
-    icon: "iconfont el-icon-dian1",
-    createTime: Date.now(),
-    type: "view",
-    path: parent_name + "/" + view_id,
-    component: "GalleryView",
-    isOpen: false
-  }
-  NoteStore.dispatch("addChild", Gallery)
+
 }
 const Viewdetail = function (tag) {
 //  替换 routerview 显示数据
-  console.log("tagRouter", tag)
+//   console.log("tagRouter", tag)
   const vid = tag.id
   const lastView = NoteStore.getters.getCurrentView;
   if (tag.id !== lastView.id) {
     console.log(tag.type, vid)
     NoteStore.commit("saveLastViewId", lastView.id)
     NoteStore.commit("saveCurrentViewById", vid);
-    console.log("点击NoteView了")
+    // console.log("点击NoteView了")
     router.push({
       name: vid
     })
@@ -292,10 +319,10 @@ onMounted(() => {
     const lastView = NoteStore.getters.getCurrentView;
     console.log("lastview", lastView)
     if ((lastView === null) || (item.id !== lastView.id)) {
-      console.log(item.type, vid)
+      // console.log(item.type, vid)
       NoteStore.commit("saveLastViewId", lastView.id)
       NoteStore.commit("saveCurrentViewById", vid);
-      console.log("点击NoteView了")
+      // console.log("点击NoteView了")
       router.push({
         name: vid
       });
@@ -303,7 +330,7 @@ onMounted(() => {
   })
 })
 onUnmounted(() => {
-  console.log("note Unmounted")
+  // console.log("note Unmounted")
   Mitt.off("ViewRouter")
 })
 </script>

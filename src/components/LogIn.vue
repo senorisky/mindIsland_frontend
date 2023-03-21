@@ -1,14 +1,8 @@
-<!-- sign_in -->
 <template>
-  <div class="container b-container" id="b-container">
+  <div class="login_container">
     <el-form ref="loginForm" :model="user" :rules="loginRules" class="form" id="b-form">
       <h2 class="form_title title">Sign in to MindIsland</h2>
-      <div class="form__icons">
-        <img class="form__icon" src=" ">
-        <img class="form__icon" src=" ">
-        <img class="form__icon" src=" ">
-      </div>
-      <span class="form__span">use your email account</span>
+      <span class="login__span">use your email account</span>
       <el-form-item prop="email">
         <el-input
             class="form__input"
@@ -25,8 +19,10 @@
             @keydown.enter="login"
             type="password"/>
       </el-form-item>
-      <a class="form__link" @click="forget">Forgot your password?</a>
-      <el-button class="form__button button " @click="login">SIGN IN</el-button>
+      <div style="display: flex;flex-direction: column;justify-content: center;align-items: center">
+        <a class="form__link" @click="forget">Forgot your password?</a>
+        <el-button class="login__button" @click="login" color="#449cf3" plain>SIGN IN</el-button>
+      </div>
     </el-form>
   </div>
 </template>
@@ -177,6 +173,40 @@ onUnmounted(() => {
 })
 </script>
 <style scoped lang="scss">
-@import 'src/assets/login.scss';
-/* 将源码中的css样式单独存放,在各组件中导入就可以。*/
+.login_container {
+  width: 30%;
+  height: 60%;
+  border-radius: 20px;
+  border-width: 10px;
+  background: #fafafa;
+  box-shadow: 10px 10px 10px #d1d9e6;
+}
+
+.login__button {
+  margin-top: 20px;
+  height: 40px;
+  width: 120px
+}
+
+.login__span {
+  color: #8c939d;
+  margin-top: 30px;
+  margin-bottom: 50px;
+}
+
+.form__input {
+  height: 40px;
+  margin-top: 10px;
+  margin-right: 40px;
+  margin-left: 40px;
+}
+
+.form__link {
+  color: #8c939d;
+}
+
+.form__link:hover {
+  cursor: pointer;
+  color: black;
+}
 </style>

@@ -1,6 +1,6 @@
 <!-- sign_up 登陆页面的注册部分 -->
 <template>
-  <div class="container a-container" id="a-container">
+  <div class="sinup_container" id="a-container">
     <el-form ref="registForm" :model="user" :rules="registRules" class="form" id="a-form">
       <h2 class="form_title title">Create Account</h2>
       <div class="form__icons">
@@ -32,22 +32,25 @@
             type="password"/>
       </el-form-item>
       <el-form-item>
-        <el-input
-            style=" width: 230px;height: 40px;margin: 4px 0;
-    font-size: 13px;
-    letter-spacing: 15px;
-    border: none;
-    outline: none;"
-            placeholder="6位邮箱验证码"
-            v-model="checkcode"
-            @keydown.enter="regist"
-        />
-        <el-button :disabled="minute" plain type="primary" style="margin-left: 30px;width: 90px" @click="EmailCheck">
-          点击获取
-          {{ num }}
-        </el-button>
+        <div class="form__input">
+          <el-input
+
+              style=" width: 230px;height: 40px;margin: 4px 0;
+            font-size: 13px;
+            letter-spacing: 15px;
+            border: none;
+            outline: none;"
+              placeholder="6位邮箱验证码"
+              v-model="checkcode"
+              @keydown.enter="regist"
+          />
+          <el-button :disabled="minute" plain type="primary" style="margin-left: 30px;width: 90px" @click="EmailCheck">
+            点击获取
+            {{ num }}
+          </el-button>
+        </div>
       </el-form-item>
-      <el-button class="form__button button submit" @click="regist">SIGN UP</el-button>
+      <el-button class="signup__button" @click="regist">SIGN UP</el-button>
     </el-form>
   </div>
 </template>
@@ -181,6 +184,25 @@ onUnmounted(() => {
 
 </script>
 <style scoped lang="scss">
-@import '../assets/login.scss';
-/* 将源码中的css样式单独存放,在各组件中导入就可以。*/
+.sinup_container {
+  width: 30%;
+  height: 60%;
+  border-radius: 20px;
+  border-width: 10px;
+  background: #fafafa;
+  box-shadow: 10px 10px 10px #d1d9e6;
+}
+
+.form__input {
+  height: 40px;
+  margin-top: 10px;
+  margin-right: 40px;
+  margin-left: 40px;
+}
+
+.signup__button {
+  margin-top: 20px;
+  height: 40px;
+  width: 120px
+}
 </style>

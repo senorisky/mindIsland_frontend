@@ -152,7 +152,8 @@ const NoteStore = {
                 if (context.state.menuData[item].name === view.fname) {
                     console.log(router.getRoutes())
                     const father = context.state.menuData[item];
-                    if (father.length >= 10) {
+                    console.log("add View", father)
+                    if (father.children.length >= 10) {
                         ElNotification({
                             title: '提示',
                             message: "一个Note中不能超过10个view",
@@ -302,6 +303,40 @@ const NoteStore = {
         },
         deleteNote(context, data) {
             Axios.get("/note/deleteNote", {
+                params: {
+                    noteId: data.noteId,
+                },
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8',
+                    'lm-token': localStorage.getItem("token")
+                }
+            }).then((res) => {
+                console.log("deleteNote", res)
+                if (res.code === 200) {
+                    //删除路由
+                    for (let child of context.state.currentNote.children) {
+                        router.removeRoute(child.id)
+                    }
+                    router.removeRoute(data.noteId)
+                    //跳转至默认页
+                    const tmp = context.state.menuData
+                    for (let n in tmp) {
+                        if (tmp[n].id === data.noteId) {
+                            console.log("删除note", n)
+                            tmp.splice(n, 1)
+                            context.commit("saveMenuData", tmp)
+                            context.commit("saveCurrentNote", {})
+                            break;
+                        }
+                    }
+                    router.push({
+                        path: "/space/ProFile"
+                    })
+                }
+            })
+        },
+        deletePage(context, data) {
+            Axios.get("/note/deletePage", {
                 params: {
                     noteId: data.noteId,
                 },

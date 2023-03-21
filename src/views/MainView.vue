@@ -1,113 +1,114 @@
 <template>
-  <el-scrollbar class="menuBar">
-    <!--侧边主菜单-->
-    <div>
-      <div style="margin-bottom: 6px">
-        <p>{{ UserStore.getters.getUser.name }}</p>
-        <el-input @click="showSeaChDialog" class="w-50 m-2" placeholder="search">
-          <template #prefix>
-            <el-icon class="el-input__icon">
-              <search/>
-            </el-icon>
-          </template>
-        </el-input>
+  <div>
+    <el-scrollbar class="menuBar">
+      <!--侧边主菜单-->
+      <div>
+        <div style="margin-bottom: 6px">
+          <p>{{ UserStore.getters.getUser.name }}</p>
+          <el-input @click="showSeaChDialog" class="w-50 m-2" placeholder="search">
+            <template #prefix>
+              <el-icon class="el-input__icon">
+                <search/>
+              </el-icon>
+            </template>
+          </el-input>
+        </div>
+        <!-- el-sub-menu和el-menu-item 可能会有多层嵌套，所以抽取出来封装成递归组件-->
+        <el-menu unique-opened>
+          <div style="height: 7px;width: 180px;background: #f5f5f5"></div>
+          <!-- 没有子节点，使用 el-menu-item 渲染 -->
+          <MainMenu :menuData="NoteStore.getters.getMenuData"></MainMenu>
+        </el-menu>
+        <el-button round class="addPN" @click="showNPDrawer">Note & Page
+        </el-button>
       </div>
-      <!-- el-sub-menu和el-menu-item 可能会有多层嵌套，所以抽取出来封装成递归组件-->
-      <el-menu unique-opened>
-        <div style="height: 7px;width: 180px;background: #f5f5f5"></div>
-        <!-- 没有子节点，使用 el-menu-item 渲染 -->
-        <MainMenu :menuData="NoteStore.getters.getMenuData"></MainMenu>
-      </el-menu>
-      <el-button round class="addPN" @click="showNPDrawer">Note & Page
-      </el-button>
+    </el-scrollbar>
+    <div class="note_content">
+      <!--  Note的内容页  -->
+      <RouterView></RouterView>
     </div>
-  </el-scrollbar>
-  <div class="note_content">
-    <!--  Note的内容页  -->
-    <RouterView></RouterView>
-  </div>
 
-  <div class="view_drawer_contrainer">
-    <!--  添加note 或者page的抽屉 内有表单  -->
-    <el-drawer
-        v-model="drawer1"
-        title="Give  basic  info"
-        :direction="direction"
-        :before-close="handleClose"
-    >
-      <el-form ref="formRef" :model="form" label-width="20px">
-        <el-form-item prop="name" class="deepInput">
-          <el-input v-model="form.name" placeholder="Name is required"/>
-        </el-form-item>
-        <el-form-item prop="date">
-          <el-col :span="11">
-            <el-date-picker
-                v-model="form.date"
-                type="date"
-                readonly
-                placeholder="Pick current date !!"
-                style="width: 100%"
-            />
-          </el-col>
-          <el-col :span="2" class="text-center">
-            <span class="text-gray-500">-</span>
-          </el-col>
-          <el-col :span="11">
-            <el-time-picker
-                v-model="form.date"
-                readonly
-                type="time"
-                placeholder="Pick current time !!"
-                style="width: 100%"
-            />
-          </el-col>
-        </el-form-item>
-        <el-form-item prop="type">
-          <el-radio-group v-model="form.type">
-            <el-radio label="note"/>
-            <el-radio label="page"/>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item class="inputDeep">
-          <el-input v-model="form.desc" type="textarea" placeholder="please give a simple description or not"/>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="addNote">Create</el-button>
-          <el-button @click="CancelAdd">Cancel</el-button>
-        </el-form-item>
-      </el-form>
-    </el-drawer>
-  </div>
-  <div class="searchDialog">
-    <el-dialog
-        :before-close="beforeDialogClose"
-        v-model="centerDialogVisible" title="搜索" :close-on-press-escape="true" width="40%"
-        center>
-      <div style="display: flex;flex-direction: column;">
-        <el-input v-model="searchInput" @click="showSeaChDialog" @keydown.enter="search" class="w-50 m-2"
-                  placeholder="可支持搜索note、page和view   enter确定">
-          <template #prefix>
-            <el-icon class="el-input__icon">
-              <search/>
-            </el-icon>
-          </template>
-        </el-input>
-        <el-table :data="seachRes" max-height="300px"
-                  :cell-style="ItemStyle" stripe>
-          <el-table-column style="width: 400px" label="结果">
-            <template #default="scope">
-              <div style=" display: flex;flex-direction: row;" @click="searchRouter(scope.row.id,scope.row.fid)">
+    <div class="view_drawer_contrainer">
+      <!--  添加note 或者page的抽屉 内有表单  -->
+      <el-drawer
+          v-model="drawer1"
+          title="Give  basic  info"
+          :direction="direction"
+          :before-close="handleClose"
+      >
+        <el-form ref="formRef" :model="form" label-width="20px">
+          <el-form-item prop="name" class="deepInput">
+            <el-input v-model="form.name" placeholder="Name is required"/>
+          </el-form-item>
+          <el-form-item prop="date">
+            <el-col :span="11">
+              <el-date-picker
+                  v-model="form.date"
+                  type="date"
+                  readonly
+                  placeholder="Pick current date !!"
+                  style="width: 100%"
+              />
+            </el-col>
+            <el-col :span="2" class="text-center">
+              <span class="text-gray-500">-</span>
+            </el-col>
+            <el-col :span="11">
+              <el-time-picker
+                  v-model="form.date"
+                  readonly
+                  type="time"
+                  placeholder="Pick current time !!"
+                  style="width: 100%"
+              />
+            </el-col>
+          </el-form-item>
+          <el-form-item prop="type">
+            <el-radio-group v-model="form.type">
+              <el-radio label="note"/>
+              <el-radio label="page"/>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item class="inputDeep">
+            <el-input v-model="form.desc" type="textarea" placeholder="please give a simple description or not"/>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="addNote">Create</el-button>
+            <el-button @click="CancelAdd">Cancel</el-button>
+          </el-form-item>
+        </el-form>
+      </el-drawer>
+    </div>
+    <div class="searchDialog">
+      <el-dialog
+          :before-close="beforeDialogClose"
+          v-model="centerDialogVisible" title="搜索" :close-on-press-escape="true" width="40%"
+          center>
+        <div style="display: flex;flex-direction: column;">
+          <el-input v-model="searchInput" @click="showSeaChDialog" @keydown.enter="search" class="w-50 m-2"
+                    placeholder="可支持搜索note、page和view   enter确定">
+            <template #prefix>
+              <el-icon class="el-input__icon">
+                <search/>
+              </el-icon>
+            </template>
+          </el-input>
+          <el-table :data="seachRes" max-height="300px"
+                    :cell-style="ItemStyle" stripe>
+            <el-table-column style="width: 400px" label="结果">
+              <template #default="scope">
+                <div style=" display: flex;flex-direction: row;" @click="searchRouter(scope.row.id,scope.row.fid)">
                 <span style="font-weight: bold;width: 300px;font-size: 18px"
                       v-text="scope.row.name"/>
-                <span>           {{ scope.row.type }}---{{ scope.row.fname }}</span>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </el-dialog>
+                  <span>           {{ scope.row.type }}---{{ scope.row.fname }}</span>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-dialog>
+    </div>
   </div>
-
 </template>
 
 <script setup name="MainView">
@@ -231,7 +232,7 @@ const showNPDrawer = function () {
 const addNote = function () {
   if (form.name !== undefined && form.type !== undefined) {
     const np = NoteStore.getters.getMenuData;
-    const inputName = form.name.toString.trim();
+    const inputName = form.name.trim();
     var judgeFn = new RegExp(/\s+/g);
     if (judgeFn.test(inputName)) {
       ElNotification({
@@ -239,6 +240,7 @@ const addNote = function () {
         type: 'warning',
         message: h('i', {style: 'color: teal'}, 'Note或者Page的名字不允许包含空格'),
       })
+      return;
     }
     for (let i in np) {
       if (np[i].name === inputName) {
@@ -254,7 +256,7 @@ const addNote = function () {
       const nid = nanoid(8)
       const note = {
         id: UserStore.getters.getUser.id + nid,
-        name: form.name,
+        name: inputName,
         info: form.desc,
         userId: UserStore.getters.getUser.id,
         type: "note",
@@ -271,7 +273,7 @@ const addNote = function () {
       const pid = nanoid(8)
       const page = {
         id: UserStore.getters.getUser.id + pid,
-        name: form.name,
+        name: inputName,
         userId: UserStore.getters.getUser.id,
         info: form.desc,
         type: "page",

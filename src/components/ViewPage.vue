@@ -140,7 +140,7 @@ export default {
         name: pageInfo.pageName,
       }
       console.log("deletepage", data)
-      NoteStore.dispatch("deleteNote", data)
+      NoteStore.dispatch("deletePage", data)
       centerDialogVisible.value = false
     }
     const handlePrint = function () {
