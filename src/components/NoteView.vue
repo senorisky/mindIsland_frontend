@@ -211,11 +211,12 @@ const handleDelete = function () {
 const addTable = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  v_name.value = v_name.value.trim()
-  if (verifyViewName(v_name.value)) {
+  let view_name = v_name.value
+  view_name = view_name.trim()
+  if (verifyViewName(view_name)) {
     const view_id = nanoid(10)
     const table = {
-      name: v_name.value,
+      name: view_name,
       fname: parent_name,
       id: view_id,
       noteId: nid,
@@ -226,17 +227,21 @@ const addTable = function () {
       component: "TableView",
       isOpen: false
     }
-    NoteStore.dispatch("addChild", table)
+    if (NoteStore.dispatch("addChild", table)) {
+      drawer.value = false
+      v_name.value = ''
+    }
   }
 }
 const addSingleList = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  v_name.value = v_name.value.trim()
-  if (verifyViewName(v_name.value)) {
+  let view_name = v_name.value
+  view_name = view_name.trim()
+  if (verifyViewName(view_name)) {
     const view_id = nanoid(10);
     const List = {
-      name: v_name.value,
+      name: view_name,
       fname: parent_name,
       noteId: nid,
       createTime: Date.now(),
@@ -247,17 +252,21 @@ const addSingleList = function () {
       component: "sListView",
       isOpen: false
     }
-    NoteStore.dispatch("addChild", List)
+    if (NoteStore.dispatch("addChild", List)) {
+      drawer.value = false
+      v_name.value = ''
+    }
   }
 }
 const addList = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  v_name.value = v_name.value.trim()
-  if (verifyViewName(v_name.value)) {
+  let view_name = v_name.value
+  view_name = view_name.trim()
+  if (verifyViewName(view_name)) {
     const view_id = nanoid(10);
     const List = {
-      name: v_name.value,
+      name: view_name,
       fname: parent_name,
       noteId: nid,
       createTime: Date.now(),
@@ -268,18 +277,22 @@ const addList = function () {
       component: "ListView",
       isOpen: false
     }
-    NoteStore.dispatch("addChild", List)
+    if (NoteStore.dispatch("addChild", List)) {
+      drawer.value = false
+      v_name.value = ''
+    }
   }
 
 }
 const addGallry = function () {
   const parent_name = NoteStore.getters.getCurrenNote.name;
   const nid = NoteStore.getters.getCurrenNote.id;
-  v_name.value = v_name.value.trim()
-  if (verifyViewName(v_name.value)) {
+  let view_name = v_name.value
+  view_name = view_name.trim()
+  if (verifyViewName(view_name)) {
     const view_id = nanoid(10)
     const Gallery = {
-      name: v_name.value,
+      name: view_name,
       fname: parent_name,
       id: view_id,
       noteId: nid,
@@ -290,7 +303,10 @@ const addGallry = function () {
       component: "GalleryView",
       isOpen: false
     }
-    NoteStore.dispatch("addChild", Gallery)
+    if (NoteStore.dispatch("addChild", Gallery)) {
+      drawer.value = false
+      v_name.value = ''
+    }
   }
 
 }

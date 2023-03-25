@@ -234,6 +234,14 @@ const addNote = function () {
     const np = NoteStore.getters.getMenuData;
     const inputName = form.name.trim();
     var judgeFn = new RegExp(/\s+/g);
+    if (inputName === '') {
+      ElNotification({
+        title: '提示',
+        type: 'warning',
+        message: h('i', {style: 'color: teal'}, 'Note或者Page的名字不允许为空'),
+      })
+      return;
+    }
     if (judgeFn.test(inputName)) {
       ElNotification({
         title: '提示',

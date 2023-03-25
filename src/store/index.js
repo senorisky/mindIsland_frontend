@@ -152,14 +152,14 @@ const NoteStore = {
                 if (context.state.menuData[item].name === view.fname) {
                     console.log(router.getRoutes())
                     const father = context.state.menuData[item];
-                    console.log("add View", father)
+                    // console.log("add View", father)
                     if (father.children.length >= 10) {
                         ElNotification({
                             title: '提示',
                             message: "一个Note中不能超过10个view",
                             type: "warning"
                         })
-                        break;
+                        return false
                     }
                     const config = {
                         headers: {
@@ -168,7 +168,7 @@ const NoteStore = {
                         }
                     }
                     Axios.post("/view/addView", view, config).then((res) => {
-                        console.log("addView", res)
+                        // console.log("addView", res)
                         if (res.code === 200) {
                             context.commit("saveChild", {index: item, child: view})
                             router.addRoute(father.id, {
@@ -176,11 +176,12 @@ const NoteStore = {
                                 name: view.id,
                                 component: () => import(`../components/${view.component}`)
                             })
+                            return true
                         }
                     })
-                    break;
                 }
             }
+            return false
         },
         addNote(context, note) {
             console.log(router.getRoutes());
@@ -330,7 +331,7 @@ const NoteStore = {
                         }
                     }
                     router.push({
-                        path: "/space/ProFile"
+                        path: "/space"
                     })
                 }
             })
@@ -364,7 +365,7 @@ const NoteStore = {
                         }
                     }
                     router.push({
-                        path: "/space/ProFile"
+                        path: "/space"
                     })
                 }
             })
